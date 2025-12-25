@@ -553,19 +553,23 @@ class UserValidationError extends Error {
 → Wait for user to move tickets to Ready
 
 ### When User Says "Implement" or "Proceed"
+→ **FIRST: Check current branch with `git branch`**
+→ **If on main: Create feature branch IMMEDIATELY**
 → Check Ready column for available work
 → Follow TDD workflow:
-1. Check dependencies
-2. Move ticket to In Progress
-3. Create feature branch
-4. Write tests (RED)
-5. Implement code (GREEN)
-6. Refactor if needed (REFACTOR)
-7. Run all tests - must pass before commit
-8. Commit to feature branch
-9. Create PR and link to issue
-10. Move ticket to In Review
-11. Wait for user approval
+1. **Verify not on main branch** (critical!)
+2. Check dependencies
+3. Move ticket to In Progress
+4. Create/verify feature branch exists
+5. Write tests (RED)
+6. Implement code (GREEN)
+7. Refactor if needed (REFACTOR)
+8. Run all tests - must pass before commit
+9. Commit to feature branch (NOT main!)
+10. Push feature branch to origin
+11. Create PR using create_pr.py and link to issue
+12. Move ticket to In Review
+13. Wait for user approval
 
 ### When Monitoring In Testing Column (PRIORITY)
 → Check In Testing BEFORE checking Ready
@@ -590,11 +594,14 @@ class UserValidationError extends Error {
 → Always document plans before coding
 
 ### Git Workflow Guardrails
-→ NEVER commit directly to main/master
+→ **NEVER EVER commit directly to main/master** - Protected branches will reject this!
+→ **ALWAYS create feature branch BEFORE making changes**
+→ If on main with changes: `git checkout -b feature/name` BEFORE committing
 → ALWAYS work in feature branches
 → NEVER commit if tests are failing
 → NEVER merge PRs without user approval
 → ALWAYS link PRs to GitHub Issues
+→ ALWAYS push feature branches, not main
 
 ### GitHub Integration Guardrails
 → ALWAYS check In Testing column first
@@ -640,33 +647,52 @@ class UserValidationError extends Error {
 
 **CRITICAL Git Workflow Rules:**
 
-1. **Feature Branch Workflow (MANDATORY)**
-   - ALL work must be done in feature branches
+⚠️ **BREAKING THESE RULES WILL CAUSE FAILURES WITH PROTECTED BRANCHES** ⚠️
+
+1. **Feature Branch Workflow (MANDATORY - NO EXCEPTIONS)**
+   - **NEVER EVER commit directly to main/master**
+   - **ALWAYS create a feature branch BEFORE making ANY changes**
+   - If you realize you've made changes on main, CREATE BRANCH IMMEDIATELY before committing
    - Branch naming: `feature/<description>`, `bugfix/<description>`, `hotfix/<description>`
-   - **NEVER commit directly to main/master**
    - Example: `feature/user-authentication`, `bugfix/login-validation`
 
-2. **Line Endings (IMPORTANT)**
+2. **Correct Workflow When You Have Uncommitted Changes:**
+   ```bash
+   # WRONG - Don't do this!
+   git add .
+   git commit -m "message"
+   git push origin main  # ❌ FAILS with protected branch!
+   
+   # RIGHT - Do this instead:
+   git checkout -b feature/description  # Create branch WITH your changes
+   git add .
+   git commit -m "message"
+   git push origin feature/description  # ✅ Push feature branch
+   python scripts/github/create_pr.py "title" "description" main
+   ```
+
+3. **Line Endings (IMPORTANT)**
    - Always use LF (Unix-style) line endings
    - Configured via `.gitattributes`
    - Shell scripts require LF to work properly
    - Python PEP 8 standard recommends LF
 
-3. **Pre-Commit Requirements**
+4. **Pre-Commit Requirements**
    - **ALL tests MUST pass before committing**
    - Run full test suite before any commit
    - If any test fails, DO NOT commit
    - Fix failing tests before proceeding
 
-4. **Commit Standards**
+5. **Commit Standards**
    - Follow conventional commits format
    - Format: `type(scope): description`
    - Types: feat, fix, docs, test, refactor, chore
    - Example: `feat(auth): add user login endpoint`
 
-5. **Pull Request Workflow (MANDATORY)**
+6. **Pull Request Workflow (MANDATORY)**
    - After feature branch work is complete and committed
-   - Create Pull Request to merge into main
+   - Push feature branch to origin
+   - Create Pull Request using `scripts/github/create_pr.py`
    - **WAIT for user approval before merging**
    - Never auto-merge or force merge
    - Include PR description with:
@@ -674,11 +700,20 @@ class UserValidationError extends Error {
      - Tests added/modified
      - Breaking changes (if any)
 
-6. **Agent Behavior for Git Operations**
-   - Always create/switch to feature branch before starting work
+7. **Agent Behavior for Git Operations**
+   - ALWAYS check current branch before making changes
+   - If on main/master, CREATE FEATURE BRANCH IMMEDIATELY
+   - Never commit to main/master under any circumstances
    - Run tests before committing
    - Create PR and pause for user approval
    - Provide PR summary for user review
+
+8. **Why This Matters**
+   - Protected branches will REJECT direct pushes
+   - Code review process requires PRs
+   - History stays clean with feature branches
+   - Easy to revert bad changes
+   - Team workflow depends on this
 
 ---
 
@@ -719,7 +754,8 @@ class UserValidationError extends Error {
 - Document test results in tickets
 
 ❌ **DON'T:**
-- Commit directly to main/master
+- **Commit directly to main/master** (will fail with protected branches!)
+- **Make changes while on main branch**
 - Commit if any tests are failing
 - Merge PRs without user approval
 - Write code during planning phase
@@ -729,4 +765,5 @@ class UserValidationError extends Error {
 - Start work without checking dependencies
 - Move tickets to Ready (user does this)
 - Run Python commands without activating venv
+- **Push to main branch** (always push feature branches!)
 
