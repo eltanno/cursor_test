@@ -22,10 +22,10 @@ module.exports = {
     'no-console': ['warn', { allow: ['warn', 'error'] }],
     'no-debugger': 'error',
     'no-alert': 'error',
-    
+
     // Import rules
     'import/order': ['error', {
-      'groups': [
+      groups: [
         'builtin',
         'external',
         'internal',
@@ -34,27 +34,27 @@ module.exports = {
         'index',
       ],
       'newlines-between': 'always',
-      'alphabetize': {
-        'order': 'asc',
-        'caseInsensitive': true,
+      alphabetize: {
+        order: 'asc',
+        caseInsensitive: true,
       },
     }],
     'import/newline-after-import': 'error',
     'import/no-duplicates': 'error',
-    
+
     // Unused imports/variables
     'no-unused-vars': 'off', // Turned off in favor of unused-imports
     'unused-imports/no-unused-imports': 'error',
     'unused-imports/no-unused-vars': [
       'error',
       {
-        'vars': 'all',
-        'varsIgnorePattern': '^_',
-        'args': 'after-used',
-        'argsIgnorePattern': '^_',
+        vars: 'all',
+        varsIgnorePattern: '^_',
+        args: 'after-used',
+        argsIgnorePattern: '^_',
       },
     ],
-    
+
     // Code quality
     'no-var': 'error',
     'prefer-const': 'error',
@@ -62,37 +62,37 @@ module.exports = {
     'prefer-template': 'error',
     'object-shorthand': 'error',
     'quote-props': ['error', 'as-needed'],
-    
+
     // Naming conventions
-    'camelcase': ['error', {
-      'properties': 'never',
-      'ignoreDestructuring': false,
+    camelcase: ['error', {
+      properties: 'never',
+      ignoreDestructuring: false,
     }],
-    
+
     // Complexity
     'max-lines': ['warn', {
-      'max': 500,
-      'skipBlankLines': true,
-      'skipComments': true,
+      max: 500,
+      skipBlankLines: true,
+      skipComments: true,
     }],
     'max-lines-per-function': ['warn', {
-      'max': 100,
-      'skipBlankLines': true,
-      'skipComments': true,
+      max: 100,
+      skipBlankLines: true,
+      skipComments: true,
     }],
-    'complexity': ['warn', 15],
-    
+    complexity: ['warn', 15],
+
     // Formatting (will be handled by prettier if added)
-    'semi': ['error', 'always'],
-    'quotes': ['error', 'single', { 'avoidEscape': true }],
+    semi: ['error', 'always'],
+    quotes: ['error', 'single', { avoidEscape: true }],
     'comma-dangle': ['error', 'always-multiline'],
     'arrow-parens': ['error', 'always'],
     'max-len': ['error', {
-      'code': 100,
-      'ignoreUrls': true,
-      'ignoreStrings': true,
-      'ignoreTemplateLiterals': true,
-      'ignoreRegExpLiterals': true,
+      code: 100,
+      ignoreUrls: true,
+      ignoreStrings: true,
+      ignoreTemplateLiterals: true,
+      ignoreRegExpLiterals: true,
     }],
   },
   overrides: [
@@ -123,11 +123,11 @@ module.exports = {
         '@typescript-eslint/no-floating-promises': 'error',
         '@typescript-eslint/await-thenable': 'error',
         '@typescript-eslint/no-misused-promises': 'error',
-        
+
         // Import rules for TypeScript
         'import/extensions': ['error', 'ignorePackages', {
-          'ts': 'never',
-          'tsx': 'never',
+          ts: 'never',
+          tsx: 'never',
         }],
       },
     },
@@ -154,4 +154,3 @@ module.exports = {
     'tmp/',
   ],
 };
-
