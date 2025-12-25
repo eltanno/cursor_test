@@ -97,9 +97,15 @@ fixable = [
     "D",      # Docstrings not required in tests
 ]
 
-# Scripts can print
+# Scripts can print and have relaxed rules
 "scripts/**/*.py" = [
     "T201",   # print() is fine in scripts
+    "S603",   # subprocess without shell=True is fine for scripts
+    "BLE001", # blind except acceptable in utility scripts
+    "PLR0912", # many branches OK for main functions
+    "PLR0915", # many statements OK for main functions
+    "D212",   # multi-line docstring format
+    "D415",   # docstring punctuation
 ]
 
 [lint.pydocstyle]
@@ -118,4 +124,3 @@ quote-style = "single"
 indent-style = "space"
 skip-magic-trailing-comma = false
 line-ending = "lf"
-
