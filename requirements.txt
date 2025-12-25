@@ -1,0 +1,18 @@
+# Python Dependencies for cursor-test
+
+# GitHub API Integration
+requests>=2.31.0
+python-dotenv>=1.0.0
+
+# Testing Framework
+pytest>=7.4.0
+pytest-cov>=4.1.0
+
+# Code Quality
+black>=23.0.0
+ruff>=0.1.0
+mypy>=1.7.0
+
+# Type Hints
+types-requests>=2.31.0
+
