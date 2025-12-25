@@ -1,6 +1,10 @@
 # Environment variables (contains secrets)
 .env
 
+# Temporary files (agent-created summaries, scratch files)
+tmp/
+*.tmp
+
 # Python
 __pycache__/
 *.py[cod]

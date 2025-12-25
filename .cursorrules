@@ -462,7 +462,28 @@ class UserValidationError extends Error {
    - Create GitHub Issues
    - Add to Backlog column
    - Wait for user to move to Ready
-   
+
+### Temporary Files Management
+
+**CRITICAL: All temporary files must go in `./tmp/` directory**
+
+- ✅ **DO**: Create session summaries, scratch files, temporary scripts in `./tmp/`
+- ✅ **DO**: Use descriptive names: `./tmp/session-summary-YYYY-MM-DD.md`
+- ❌ **DON'T**: Create temporary `.md` files in project root
+- ❌ **DON'T**: Create temporary files outside project directory
+- ❌ **DON'T**: Commit temporary files (`.tmp/` is gitignored)
+
+**Examples:**
+- Session summaries → `./tmp/setup-summary.md`
+- Scratch calculations → `./tmp/calculations.txt`
+- Temporary scripts → `./tmp/test-script.py`
+- Debug output → `./tmp/debug-output.log`
+
+**Cleanup:**
+- Temporary files in `./tmp/` can be deleted after session
+- User can review and decide what to keep
+- `./tmp/` directory is gitignored
+
 4. **Setup Feature Branch**
    - Check Ready column for work
    - Verify dependencies are met
