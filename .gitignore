@@ -60,6 +60,13 @@ Thumbs.db
 .coverage
 htmlcov/
 .tox/
+coverage/
+.nyc_output/
+
+# Linter caches
+.eslintcache
+.stylelintcache
+.ruff_cache/
 
 # Logs
 *.log

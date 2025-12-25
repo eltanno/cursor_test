@@ -1,18 +1,19 @@
-# Python Dependencies for cursor-test
+# Python dependencies for cursor-test project
 
-# GitHub API Integration
-requests>=2.31.0
-python-dotenv>=1.0.0
+# Testing
+pytest==9.0.2
+pytest-cov==7.0.0
 
-# Testing Framework
-pytest>=7.4.0
-pytest-cov>=4.1.0
+# Environment management
+python-dotenv==1.2.1
 
-# Code Quality
-black>=23.0.0
-ruff>=0.1.0
-mypy>=1.7.0
+# HTTP requests
+requests==2.32.5
+types-requests==2.32.4.20250913
 
-# Type Hints
-types-requests>=2.31.0
+# Code quality
+ruff==0.14.10
+pre-commit==4.5.1
 
+# Pre-commit dependencies (auto-installed)
+bandit[toml]==1.8.0
