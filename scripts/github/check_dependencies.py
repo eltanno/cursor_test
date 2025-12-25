@@ -81,7 +81,7 @@ def check_dependencies(issue_number: int) -> tuple[bool, list[Dict]]:
                         'title': dep_issue['title'],
                         'state': dep_issue['state'],
                         'url': dep_issue['html_url'],
-                    }
+                    },
                 )
         except GitHubAPIError as e:
             print(f'Warning: Could not check dependency #{dep_num}: {e}')

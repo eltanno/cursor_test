@@ -73,7 +73,7 @@ def parse_planning_document(file_path: str) -> dict:
                     'title': title,
                     'description': description,
                     'subtasks': subtasks,
-                }
+                },
             )
 
     return {

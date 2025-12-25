@@ -89,13 +89,15 @@ class GitHubAPI:
             return response.json() if response.content else {}
         except requests.exceptions.HTTPError as e:
             raise GitHubAPIError(
-                f'GitHub API request failed: {e}, Response: {response.text}'
+                f'GitHub API request failed: {e}, Response: {response.text}',
             )
         except Exception as e:
             raise GitHubAPIError(f'Request error: {e}')
 
     def _make_graphql_request(
-        self, query: str, variables: dict | None = None
+        self,
+        query: str,
+        variables: dict | None = None,
     ) -> dict[str, Any]:
         """Make GraphQL API request to GitHub.
 
@@ -169,7 +171,7 @@ class GitHubAPI:
             except Exception as e:
                 # Log warning but don't fail issue creation
                 print(
-                    f'⚠ Warning: Created issue #{issue["number"]} but failed to add to project: {e}'
+                    f'⚠ Warning: Created issue #{issue["number"]} but failed to add to project: {e}',
                 )
 
         return issue
@@ -445,7 +447,7 @@ class GitHubAPI:
 
         if not project_item_id:
             raise GitHubAPIError(
-                f'Could not find or create project item for issue #{issue_number}'
+                f'Could not find or create project item for issue #{issue_number}',
             )
 
         # Update the item's status field

@@ -150,7 +150,7 @@ def main():
     """Main entry point."""
     if len(sys.argv) < 3:
         print(
-            'Usage: python post_test_results.py <issue-number> <pass|fail> [test-output-file]'
+            'Usage: python post_test_results.py <issue-number> <pass|fail> [test-output-file]',
         )
         sys.exit(1)
 
