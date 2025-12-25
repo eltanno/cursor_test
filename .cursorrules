@@ -30,7 +30,7 @@ This project follows strict, opinionated development practices designed to ensur
 
 When these keywords are used, respond with:
 1. **Objective Summary**: Restate the goal
-2. **Best Practices Analysis**: 
+2. **Best Practices Analysis**:
    - Evaluate if request follows industry best practices
    - Flag any anti-patterns or potential issues
    - Suggest better approaches if applicable
@@ -99,7 +99,7 @@ priority: high | medium | low
 
 #### When Planning is Approved:
 1. Agent breaks plan into discrete tasks
-2. Agent creates GitHub Issues for each task
+2. Agent creates GitHub Issues for each task using `add_to_project=True`
 3. Each issue includes:
    - Clear title
    - Description with acceptance criteria
@@ -107,8 +107,21 @@ priority: high | medium | low
    - Appropriate labels
    - Task checklist
    - Dependencies listed
-4. Agent adds all issues to **Backlog** column
+4. Issues are **automatically added to Backlog** column via API
 5. Agent waits for user to move tickets to **Ready**
+
+**CRITICAL: Always use `add_to_project=True` when creating issues**
+
+```python
+# Correct way to create issues
+issue = api.create_issue(
+    title='[Feature] Task description',
+    body='...',
+    labels=['feature', 'priority:high'],
+    add_to_project=True,  # ← REQUIRED!
+    column_name='Backlog'  # Default, but can be specified
+)
+```
 
 #### When Starting Work (Ready → In Progress):
 1. Agent checks **Ready** column for work
@@ -201,11 +214,11 @@ priority: high | medium | low
 1. **RED**: Write failing tests first
    - Tests define the expected behavior
    - Run tests to confirm they fail for the right reason
-   
+
 2. **GREEN**: Write minimal code to pass tests
    - Implement only what's needed to make tests pass
    - Avoid premature optimization
-   
+
 3. **REFACTOR**: Improve code quality
    - Clean up implementation
    - Ensure tests still pass
@@ -298,7 +311,7 @@ from typing import Optional
 @dataclass
 class User:
     """Represents a user in the system.
-    
+
     Attributes:
         id: Unique identifier for the user
         username: User's chosen username
@@ -307,10 +320,10 @@ class User:
     id: int
     username: str
     email: str
-    
+
     def validate(self) -> bool:
         """Validates user data.
-        
+
         Returns:
             True if valid, False otherwise
         """
@@ -360,17 +373,17 @@ const validateUser = async (user: User): Promise<boolean> => {
 ```python
 def calculate_total(items: list[Item], discount: float = 0.0) -> float:
     """Calculates the total price with optional discount.
-    
+
     Args:
         items: List of items to total
         discount: Discount percentage (0.0 to 1.0)
-        
+
     Returns:
         Total price after discount
-        
+
     Raises:
         ValueError: If discount is negative or greater than 1.0
-        
+
     Example:
         >>> items = [Item(price=10), Item(price=20)]
         >>> calculate_total(items, 0.1)
@@ -448,7 +461,7 @@ class UserValidationError extends Error {
    - Clarify ambiguities
    - Identify acceptance criteria
    - Check if request follows best practices
-   
+
 2. **Create Plan** (if complex)
    - Design architecture
    - Evaluate against best practices
@@ -456,7 +469,7 @@ class UserValidationError extends Error {
    - Identify files to modify
    - Plan test strategy
    - **Document in `docs/planning/features/`**
-   
+
 3. **Create GitHub Tickets** (after plan approved)
    - Break plan into discrete tasks
    - Create GitHub Issues
@@ -491,37 +504,37 @@ class UserValidationError extends Error {
    - Create feature branch from main
    - Use descriptive branch name
    - Switch to feature branch
-   
+
 5. **Write Tests First** (TDD Red phase)
    - Unit tests for new functionality
    - Integration tests if needed
    - Run tests to confirm they fail
-   
+
 6. **Implement Minimum Code** (TDD Green phase)
    - Make tests pass
    - Keep it simple
    - Reuse existing functionality where possible
-   
+
 7. **Refactor** (TDD Refactor phase)
    - Improve code quality
    - Ensure tests still pass
    - Extract reusable components
-   
+
 8. **Document**
    - Add/update docstrings
    - Update README if needed
-   
+
 9. **Pre-Commit Review**
    - Self-review against checklist
    - **RUN ALL TESTS** - must pass 100%
    - Check coverage meets 90% minimum
    - If tests fail, fix before committing
-   
+
 10. **Commit Changes**
     - Only commit if all tests pass
     - Use conventional commit format
     - Commit to feature branch
-    
+
 11. **Create Pull Request**
     - Create PR from feature branch to main
     - Link PR to GitHub Issue
@@ -623,11 +636,13 @@ class UserValidationError extends Error {
 ## 🛠️ Tools & Standards
 
 ### Python Projects
-- **Formatter**: Black
-- **Linter**: Ruff or Pylint
-- **Type Checker**: mypy
+- **Linter**: Ruff (configured via ruff.toml)
+- **Formatter**: Ruff format
+- **Type Checker**: mypy (optional, Ruff provides type checking)
 - **Testing**: pytest
 - **Coverage**: pytest-cov
+- **Security**: Bandit (via pre-commit)
+- **Dead Code Detection**: Vulture (in pre-PR checks)
 - **Environment**: Virtual environment (venv) - ALWAYS activate before commands
 
 ### Python Virtual Environment
@@ -637,11 +652,167 @@ class UserValidationError extends Error {
 - **Terminal Commands**: Prefix with venv activation: `source venv/bin/activate && python script.py`
 
 ### JavaScript/TypeScript Projects
-- **Formatter**: Prettier
-- **Linter**: ESLint
-- **Type Checker**: TypeScript strict mode
+- **Linter**: ESLint (configured via .eslintrc.js)
+- **Style Guide**: Airbnb (industry standard)
+- **TypeScript**: Strict mode with comprehensive rules
 - **Testing**: Jest or Vitest
 - **Coverage**: Built-in coverage tools
+- **Node Version**: 20+ (managed via nvm)
+
+### CSS/SCSS Projects
+- **Linter**: Stylelint (configured via .stylelintrc.json)
+- **Standards**: stylelint-config-standard + SCSS extension
+- **Formatting**: 2-space indentation, single quotes
+- **Best Practices**: No ID selectors, max 4 nesting levels
+
+---
+
+## 🎯 Code Quality & Linting
+
+### Overview
+
+This project enforces strict code quality standards through automated linting and formatting:
+- **Pre-commit hooks**: Auto-fix on every commit (max 3 attempts)
+- **Pre-PR cleanup**: Comprehensive quality check before Pull Requests
+- **Continuous enforcement**: Code quality maintained automatically
+
+### Linting Tools Configuration
+
+**Python (Ruff)**
+- Configuration: `ruff.toml`
+- Line length: 88 characters (Black standard)
+- Quote style: Single quotes
+- Rules: 40+ rule sets enabled (pycodestyle, Pyflakes, isort, pydocstyle, type hints, security, etc.)
+- Auto-fix: Enabled for safe transformations
+- Command: `ruff check . --fix`
+
+**JavaScript/TypeScript (ESLint)**
+- Configuration: `.eslintrc.js`
+- Style guide: Airbnb base
+- Unused imports: Automatically detected and removed
+- Import ordering: Automatic sorting and grouping
+- Max line length: 100 characters
+- Command: `npx eslint . --fix`
+
+**CSS/SCSS (Stylelint)**
+- Configuration: `.stylelintrc.json`
+- Standards: stylelint-config-standard + SCSS
+- Formatting: Consistent spacing, quotes, colors
+- Restrictions: No ID selectors, max 4 nesting levels
+- Command: `npx stylelint "**/*.{css,scss}" --fix`
+
+### Pre-commit Hooks (Automatic)
+
+**Installed via pre-commit framework**
+- Location: `.pre-commit-config.yaml`
+- Runs automatically on `git commit`
+- Max 3 auto-fix attempts per commit
+- Blocks commit if unfixable errors or tests fail
+
+**Hooks include:**
+1. **Ruff**: Python linting + formatting
+2. **ESLint**: JS/TS linting (auto-fix)
+3. **Stylelint**: CSS/SCSS linting (auto-fix)
+4. **File checks**: Trailing whitespace, EOF, line endings (LF)
+5. **Syntax validation**: YAML, JSON, TOML
+6. **Security**: Bandit for Python vulnerabilities
+7. **Safety**: Large file detection, merge conflict detection
+
+**Auto-fix loop behavior:**
+1. Run all hooks on staged files
+2. If issues found, apply auto-fixes
+3. Re-stage fixed files automatically
+4. Re-run hooks to verify fixes
+5. Repeat up to 3 times
+6. Run tests after all fixes
+7. Block commit if tests fail or unfixable errors remain
+
+**Bypass (use sparingly):**
+```bash
+SKIP=ruff,eslint git commit -m "message"  # Skip specific hooks
+git commit --no-verify -m "message"        # Skip all hooks (NOT RECOMMENDED)
+```
+
+### Pre-PR Quality Check (Manual)
+
+**Run before creating Pull Request:**
+```bash
+python scripts/quality/pre_pr_check.py
+```
+
+**Performs comprehensive checks:**
+1. **Vulture**: Detect unused Python code (80% confidence)
+2. **Ruff**: Auto-fix Python (including unsafe fixes)
+3. **ESLint**: Auto-fix JS/TS issues
+4. **Stylelint**: Auto-fix CSS/SCSS issues
+5. **Test Suite**: Verify fixes didn't break functionality
+6. **Summary Report**: Clear output of all changes
+
+**Exit codes:**
+- `0`: All passed or warnings only
+- `1`: Tests failed after fixes (blocks PR)
+
+**When to run:**
+- Before creating any Pull Request
+- After major refactoring
+- When seeing linter warnings accumulate
+- Before merging feature branches
+
+### Agent Workflow with Linting
+
+**On commit (automatic):**
+1. Stage files with `git add`
+2. Run `git commit`
+3. Pre-commit hooks run automatically
+4. Auto-fixes applied (up to 3 attempts)
+5. Tests run after fixes
+6. Commit succeeds or blocks with clear errors
+
+**Before PR creation (manual):**
+1. Run `python scripts/quality/pre_pr_check.py`
+2. Review unused code warnings (vulture)
+3. Verify all auto-fixes applied correctly
+4. Ensure all tests pass
+5. Create PR using `scripts/github/create_pr.py`
+
+**If commit blocked:**
+1. Read error messages carefully
+2. Fix issues that can't be auto-fixed
+3. Re-stage files: `git add .`
+4. Try commit again
+5. Repeat until successful or max 3 attempts reached
+
+**If tests fail after auto-fix:**
+1. Review what the linters changed
+2. Fix broken tests or revert problematic changes
+3. Ensure code logic is correct
+4. Re-run tests manually: `pytest tests/` or `npm test`
+5. Commit again once tests pass
+
+### Code Quality Standards
+
+**All code must:**
+- ✅ Pass all linter checks (Ruff/ESLint/Stylelint)
+- ✅ Have no unused imports, variables, or functions
+- ✅ Follow consistent formatting (automated)
+- ✅ Use proper naming conventions
+- ✅ Have no security vulnerabilities (Bandit)
+- ✅ Pass all tests after any changes
+- ✅ Use LF line endings (enforced)
+- ✅ Have no trailing whitespace
+- ✅ End with single newline
+
+**Linting is non-negotiable:**
+- Cannot commit with linter errors
+- Cannot merge PR with linter warnings
+- Auto-fix handles 90%+ of issues
+- Manual fixes required for architectural issues
+
+**Best practices enforced:**
+- Python: Type hints, docstrings, imports sorted
+- JS/TS: Unused code removed, imports organized
+- CSS/SCSS: No IDs, limited nesting, consistent format
+- All: Line length limits, consistent quotes, proper spacing
 
 ### Version Control
 
@@ -662,7 +833,7 @@ class UserValidationError extends Error {
    git add .
    git commit -m "message"
    git push origin main  # ❌ FAILS with protected branch!
-   
+
    # RIGHT - Do this instead:
    git checkout -b feature/description  # Create branch WITH your changes
    git add .
@@ -766,4 +937,3 @@ class UserValidationError extends Error {
 - Move tickets to Ready (user does this)
 - Run Python commands without activating venv
 - **Push to main branch** (always push feature branches!)
-

@@ -9,15 +9,32 @@ This repository demonstrates:
 1. **Planning-First Development**: All features start with comprehensive planning documents
 2. **Test-Driven Development (TDD)**: Red → Green → Refactor workflow
 3. **Automated Ticket Management**: GitHub Issues integrated with Kanban board
-4. **Best Practices Enforcement**: Opinionated rules ensure code quality
-5. **Git Workflow**: Feature branches with PR approval process
+4. **Code Quality Enforcement**: Comprehensive linting with auto-fix on commit
+5. **Best Practices Enforcement**: Opinionated rules ensure code quality
+6. **Git Workflow**: Feature branches with PR approval process
+
+## ✨ Code Quality Features
+
+This project includes a comprehensive code quality system:
+
+- **🐍 Python**: Ruff (linting + formatting)
+- **📜 JavaScript/TypeScript**: ESLint with Airbnb style guide
+- **🎨 CSS/SCSS**: Stylelint with industry standards
+- **🪝 Pre-commit Hooks**: Auto-fix on every commit (max 3 attempts)
+- **🧹 Pre-PR Cleanup**: Comprehensive quality check before Pull Requests
+- **🔒 Security**: Bandit scanner for Python vulnerabilities
+- **🧪 Test Verification**: Tests run after auto-fixes to ensure nothing breaks
+
+**See [docs/LINTING.md](docs/LINTING.md) for complete linting guide.**
 
 ## 📋 Table of Contents
 
+- [Code Quality Features](#code-quality-features)
 - [Quick Start](#quick-start)
 - [Development Workflow](#development-workflow)
 - [Project Structure](#project-structure)
 - [GitHub Integration](#github-integration)
+- [Linting & Code Quality](#linting--code-quality)
 - [Scripts Reference](#scripts-reference)
 - [Cursor Rules](#cursor-rules)
 - [Contributing](#contributing)
@@ -284,6 +301,82 @@ Agents prioritize in this order:
 - `documentation` - Documentation updates
 - `refactor` - Code improvements
 - `blocked` - Cannot proceed (dependency issue)
+
+---
+
+## 🎯 Linting & Code Quality
+
+This project enforces strict code quality through automated linting and formatting.
+
+### Linters Configured
+
+| Language | Tool | Config File | Auto-fix |
+|----------|------|-------------|----------|
+| Python | Ruff | `ruff.toml` | ✅ Yes |
+| JavaScript/TypeScript | ESLint | `.eslintrc.js` | ✅ Yes |
+| CSS/SCSS | Stylelint | `.stylelintrc.json` | ✅ Yes |
+
+### Automated Workflows
+
+**1. Pre-commit Hooks (Automatic)**
+- Run on every `git commit`
+- Auto-fix issues (up to 3 attempts)
+- Block commit if tests fail or unfixable errors
+- Configuration: `.pre-commit-config.yaml`
+
+**2. Pre-PR Quality Check (Manual)**
+```bash
+python scripts/quality/pre_pr_check.py
+```
+- Detects unused code (Vulture)
+- Fixes all linting issues
+- Runs full test suite
+- Generates summary report
+
+### Quick Commands
+
+**Check issues:**
+```bash
+# Python
+ruff check .
+
+# JavaScript/TypeScript
+npx eslint .
+
+# CSS/SCSS
+npx stylelint "**/*.{css,scss}"
+```
+
+**Auto-fix issues:**
+```bash
+# Python
+ruff check . --fix
+ruff format .
+
+# JavaScript/TypeScript
+npx eslint . --fix
+
+# CSS/SCSS
+npx stylelint "**/*.{css,scss}" --fix
+```
+
+**Run all hooks manually:**
+```bash
+pre-commit run --all-files
+```
+
+### Documentation
+
+For complete linting guide, see **[docs/LINTING.md](docs/LINTING.md)**
+
+Topics covered:
+- Tool configurations
+- Pre-commit hook behavior
+- Troubleshooting blocked commits
+- Code quality standards
+- Best practices enforced
+
+---
 - `priority:high` / `priority:medium` / `priority:low`
 
 ## 🛠️ Scripts Reference
@@ -515,7 +608,6 @@ Created to learn and demonstrate:
 
 ---
 
-**Project URL**: https://github.com/eltanno/cursor_test  
-**Kanban Board**: https://github.com/users/eltanno/projects/1  
+**Project URL**: https://github.com/eltanno/cursor_test
+**Kanban Board**: https://github.com/users/eltanno/projects/1
 **Last Updated**: 2025-12-25
-

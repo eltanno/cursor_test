@@ -1,0 +1,3 @@
+[tool.bandit]
+# Bandit security scanner configuration
+exclude_dirs = ["tests", "venv", "node_modules", "tmp", "scripts/quality", "scripts/github"]

@@ -7,6 +7,51 @@ set -e  # Exit on error
 echo "🚀 Setting up cursor-test development environment..."
 echo ""
 
+# Check if git is initialized
+if [ ! -d ".git" ]; then
+    echo "📦 Git repository not found"
+    echo ""
+    echo "Would you like to:"
+    echo "  1) Initialize a new git repository"
+    echo "  2) Clone from an existing GitHub repository"
+    echo "  3) Skip git setup"
+    echo ""
+    read -p "Enter your choice (1/2/3): " -n 1 -r GIT_CHOICE
+    echo ""
+    echo ""
+
+    if [[ $GIT_CHOICE == "1" ]]; then
+        echo "📦 Initializing new git repository..."
+        git init
+        echo "✓ Git repository initialized"
+        echo ""
+        echo "💡 Don't forget to:"
+        echo "   - Add a remote: git remote add origin <your-repo-url>"
+        echo "   - Make your first commit after setup completes"
+        echo ""
+    elif [[ $GIT_CHOICE == "2" ]]; then
+        echo "⚠️  To clone from GitHub, please:"
+        echo "   1. Exit this script (Ctrl+C)"
+        echo "   2. Clone your repository: git clone <your-repo-url>"
+        echo "   3. cd into the cloned directory"
+        echo "   4. Run ./setup.sh again"
+        echo ""
+        read -p "Press Enter to continue anyway, or Ctrl+C to exit..."
+    else
+        echo "⚠️  Skipping git setup"
+        echo "   Note: Pre-commit hooks require a git repository"
+        echo ""
+    fi
+else
+    echo "✓ Git repository found"
+    # Show current remote if exists
+    if git remote get-url origin &> /dev/null; then
+        REMOTE_URL=$(git remote get-url origin)
+        echo "  Remote: $REMOTE_URL"
+    fi
+    echo ""
+fi
+
 # Check Python version
 PYTHON_CMD=""
 if command -v python3 &> /dev/null; then
@@ -61,8 +106,60 @@ echo "⬆️  Upgrading pip..."
 pip install --upgrade pip -q
 
 # Install dependencies
-echo "📚 Installing dependencies..."
+echo "📚 Installing Python dependencies..."
 pip install -r requirements.txt -q
+
+# Install pre-commit hooks
+if [ -d ".git" ]; then
+    echo "🪝 Installing pre-commit hooks..."
+    pre-commit install
+    echo "✓ Pre-commit hooks installed"
+else
+    echo "⚠️  Skipping pre-commit hooks (no git repository)"
+    echo "   Run 'pre-commit install' after initializing git"
+fi
+
+# Check for Node.js and nvm
+echo ""
+echo "📦 Checking Node.js setup..."
+if command -v node &> /dev/null; then
+    NODE_VERSION=$(node --version)
+    NODE_MAJOR=$(echo $NODE_VERSION | cut -d. -f1 | tr -d 'v')
+
+    if [ "$NODE_MAJOR" -lt 20 ]; then
+        echo "⚠️  Node.js $NODE_VERSION found, but version 20+ is required"
+        if command -v nvm &> /dev/null || [ -s "$HOME/.nvm/nvm.sh" ]; then
+            echo "📦 Switching to Node 20 with nvm..."
+            source ~/.nvm/nvm.sh
+            nvm use 20 || nvm install 20
+        else
+            echo "❌ Please install Node.js 20+ or nvm"
+        fi
+    else
+        echo "✓ Node.js $NODE_VERSION"
+    fi
+else
+    echo "❌ Node.js not found"
+    if command -v nvm &> /dev/null || [ -s "$HOME/.nvm/nvm.sh" ]; then
+        echo "📦 Installing Node 20 with nvm..."
+        source ~/.nvm/nvm.sh
+        nvm install 20
+        nvm use 20
+    else
+        echo "⚠️  Please install Node.js 20+ or nvm for JS/TS linting"
+    fi
+fi
+
+# Install Node dependencies if package.json exists
+if [ -f "package.json" ]; then
+    echo "📦 Installing Node.js dependencies..."
+    if command -v npm &> /dev/null; then
+        npm install
+        echo "✓ Node.js dependencies installed"
+    else
+        echo "⚠️  npm not found, skipping Node dependencies"
+    fi
+fi
 
 echo ""
 echo "✅ Setup complete!"
@@ -71,12 +168,19 @@ echo "📝 Next steps:"
 echo "  1. Activate the virtual environment:"
 echo "     source venv/bin/activate"
 echo ""
-echo "  2. Copy .env.example to .env and add your GitHub token:"
+echo "  2. If using Node.js/TypeScript, activate Node 20:"
+echo "     source ~/.nvm/nvm.sh && nvm use 20"
+echo ""
+echo "  3. Copy .env.example to .env and add your GitHub token:"
 echo "     cp .env.example .env"
 echo "     nano .env  # or use your preferred editor"
 echo ""
-echo "  3. Verify setup:"
+echo "  4. Verify setup:"
 echo "     python -c \"from scripts.utils.github_api import GitHubAPI; api = GitHubAPI(); print('✓ Ready!')\""
 echo ""
+echo "  5. Read the linting guide:"
+echo "     cat docs/LINTING.md"
+echo ""
 echo "🎉 Happy coding!"
-
+echo ""
+echo "💡 Tip: Pre-commit hooks are now installed and will run automatically on 'git commit'"
