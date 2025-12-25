@@ -129,7 +129,9 @@ class GitHubAPI:
         title: str,
         body: str,
         labels: Optional[List[str]] = None,
-        assignees: Optional[List[str]] = None
+        assignees: Optional[List[str]] = None,
+        add_to_project: bool = False,
+        column_name: str = 'Backlog'
     ) -> Dict[str, Any]:
         """Create a new GitHub issue.
         
@@ -138,6 +140,8 @@ class GitHubAPI:
             body: Issue description (supports Markdown)
             labels: List of label names
             assignees: List of GitHub usernames
+            add_to_project: If True, automatically add issue to project board
+            column_name: Column to add issue to (default: 'Backlog')
             
         Returns:
             Created issue data including issue number
@@ -150,7 +154,18 @@ class GitHubAPI:
             'assignees': assignees or []
         }
         
-        return self._make_request('POST', endpoint, data)
+        issue = self._make_request('POST', endpoint, data)
+        
+        # Automatically add to project board if requested
+        if add_to_project:
+            try:
+                self.add_issue_to_project(issue['node_id'])
+                self.move_issue_to_column(issue['number'], column_name)
+            except Exception as e:
+                # Log warning but don't fail issue creation
+                print(f"⚠ Warning: Created issue #{issue['number']} but failed to add to project: {e}")
+        
+        return issue
     
     def update_issue(
         self,
@@ -385,7 +400,7 @@ class GitHubAPI:
         # Get project item ID for this issue
         project_id = self.get_project_id()
         query = """
-        query($projectId: ID!, $issueId: ID!) {
+        query($projectId: ID!) {
             node(id: $projectId) {
                 ... on ProjectV2 {
                     items(first: 100) {
@@ -404,8 +419,7 @@ class GitHubAPI:
         """
         
         result = self._make_graphql_request(query, {
-            'projectId': project_id,
-            'issueId': issue_node_id
+            'projectId': project_id
         })
         
         project_item_id = None
@@ -416,16 +430,11 @@ class GitHubAPI:
         
         if not project_item_id:
             # Issue not in project, add it first
-            self.add_issue_to_project(issue_node_id)
-            # Re-query to get item ID
-            result = self._make_graphql_request(query, {
-                'projectId': project_id,
-                'issueId': issue_node_id
-            })
-            for item in result['node']['items']['nodes']:
-                if item['content']['id'] == issue_node_id:
-                    project_item_id = item['id']
-                    break
+            add_result = self.add_issue_to_project(issue_node_id)
+            project_item_id = add_result['addProjectV2ItemById']['item']['id']
+        
+        if not project_item_id:
+            raise GitHubAPIError(f"Could not find or create project item for issue #{issue_number}")
         
         # Update the item's status field
         update_query = """

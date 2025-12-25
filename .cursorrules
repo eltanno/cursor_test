@@ -99,7 +99,7 @@ priority: high | medium | low
 
 #### When Planning is Approved:
 1. Agent breaks plan into discrete tasks
-2. Agent creates GitHub Issues for each task
+2. Agent creates GitHub Issues for each task using `add_to_project=True`
 3. Each issue includes:
    - Clear title
    - Description with acceptance criteria
@@ -107,8 +107,21 @@ priority: high | medium | low
    - Appropriate labels
    - Task checklist
    - Dependencies listed
-4. Agent adds all issues to **Backlog** column
+4. Issues are **automatically added to Backlog** column via API
 5. Agent waits for user to move tickets to **Ready**
+
+**CRITICAL: Always use `add_to_project=True` when creating issues**
+
+```python
+# Correct way to create issues
+issue = api.create_issue(
+    title='[Feature] Task description',
+    body='...',
+    labels=['feature', 'priority:high'],
+    add_to_project=True,  # ← REQUIRED!
+    column_name='Backlog'  # Default, but can be specified
+)
+```
 
 #### When Starting Work (Ready → In Progress):
 1. Agent checks **Ready** column for work
