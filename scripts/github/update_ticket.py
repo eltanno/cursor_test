@@ -12,7 +12,7 @@ Examples:
 
 import sys
 from pathlib import Path
-from typing import Optional
+
 
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
@@ -23,7 +23,7 @@ from scripts.utils.github_api import GitHubAPI, GitHubAPIError
 def update_ticket_status(
     issue_number: int,
     column_name: str,
-    comment: Optional[str] = None
+    comment: str | None = None,
 ) -> None:
     """Update ticket status and optionally add comment.
     
@@ -33,18 +33,18 @@ def update_ticket_status(
         comment: Optional comment to add
     """
     api = GitHubAPI()
-    
+
     print(f"\n🔄 Updating issue #{issue_number}")
     print(f"   Moving to: {column_name}")
-    
+
     # Add comment if provided
     if comment:
         try:
             api.add_comment(issue_number, comment)
-            print(f"   ✓ Added comment")
+            print("   ✓ Added comment")
         except GitHubAPIError as e:
             print(f"   ⚠ Warning: Could not add comment: {e}")
-    
+
     # Move to column
     try:
         api.move_issue_to_column(issue_number, column_name)
@@ -52,11 +52,11 @@ def update_ticket_status(
     except GitHubAPIError as e:
         print(f"   ✗ Error moving to column: {e}")
         raise
-    
+
     # Get issue URL
     issue = api.get_issue(issue_number)
     print(f"   🔗 {issue['html_url']}")
-    
+
     print("\n✅ Ticket updated successfully")
 
 
@@ -73,14 +73,14 @@ def main():
         print("  - Test Failed")
         print("  - Done")
         sys.exit(1)
-    
+
     try:
         issue_number = int(sys.argv[1])
         column_name = sys.argv[2]
         comment = sys.argv[3] if len(sys.argv) > 3 else None
-        
+
         update_ticket_status(issue_number, column_name, comment)
-        
+
     except ValueError:
         print("Error: Issue number must be an integer")
         sys.exit(1)
@@ -94,6 +94,6 @@ def main():
         sys.exit(1)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
 

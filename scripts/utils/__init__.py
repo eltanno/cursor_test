@@ -1,4 +1,4 @@
 """Utility functions for scripts."""
 
-__all__ = ['github_api']
+__all__ = ["github_api"]
 

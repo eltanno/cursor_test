@@ -10,23 +10,24 @@ Example:
 """
 
 import sys
-import os
 from pathlib import Path
+
 
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from scripts.utils.github_api import GitHubAPI, GitHubAPIError
 import subprocess
+
+from scripts.utils.github_api import GitHubAPI, GitHubAPIError
 
 
 def get_current_branch() -> str:
     """Get the current git branch name."""
     result = subprocess.run(
-        ['git', 'rev-parse', '--abbrev-ref', 'HEAD'],
+        ["git", "rev-parse", "--abbrev-ref", "HEAD"],
         capture_output=True,
         text=True,
-        check=True
+        check=True,
     )
     return result.stdout.strip()
 
@@ -34,7 +35,7 @@ def get_current_branch() -> str:
 def create_pull_request(
     title: str,
     body: str,
-    base: str = 'main'
+    base: str = "main",
 ) -> dict:
     """Create a pull request.
     
@@ -47,34 +48,34 @@ def create_pull_request(
         Created PR data
     """
     api = GitHubAPI()
-    
+
     # Get current branch
     head = get_current_branch()
-    
+
     if head == base:
         raise ValueError(f"Cannot create PR: currently on base branch '{base}'")
-    
-    print(f"\n📝 Creating Pull Request")
+
+    print("\n📝 Creating Pull Request")
     print(f"   From: {head}")
     print(f"   To: {base}")
     print(f"   Title: {title}")
-    
+
     # Create PR using REST API
-    endpoint = f'/repos/{api.owner}/{api.repo}/pulls'
+    endpoint = f"/repos/{api.owner}/{api.repo}/pulls"
     data = {
-        'title': title,
-        'body': body,
-        'head': head,
-        'base': base
+        "title": title,
+        "body": body,
+        "head": head,
+        "base": base,
     }
-    
-    pr = api._make_request('POST', endpoint, data)
-    
-    print(f"\n✅ Pull Request created successfully!")
+
+    pr = api._make_request("POST", endpoint, data)
+
+    print("\n✅ Pull Request created successfully!")
     print(f"   📋 PR #{pr['number']}: {pr['title']}")
     print(f"   🔗 {pr['html_url']}")
-    print(f"\n⏳ Waiting for user review and approval...")
-    
+    print("\n⏳ Waiting for user review and approval...")
+
     return pr
 
 
@@ -85,11 +86,11 @@ def main():
         print("\nExample:")
         print('  python create_pr.py "feat: add feature" "Description" main')
         sys.exit(1)
-    
+
     title = sys.argv[1]
     body = sys.argv[2]
-    base = sys.argv[3] if len(sys.argv) > 3 else 'main'
-    
+    base = sys.argv[3] if len(sys.argv) > 3 else "main"
+
     try:
         create_pull_request(title, body, base)
     except GitHubAPIError as e:
@@ -102,6 +103,6 @@ def main():
         sys.exit(1)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
 
