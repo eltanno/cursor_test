@@ -7,6 +7,51 @@ set -e  # Exit on error
 echo "🚀 Setting up cursor-test development environment..."
 echo ""
 
+# Check if git is initialized
+if [ ! -d ".git" ]; then
+    echo "📦 Git repository not found"
+    echo ""
+    echo "Would you like to:"
+    echo "  1) Initialize a new git repository"
+    echo "  2) Clone from an existing GitHub repository"
+    echo "  3) Skip git setup"
+    echo ""
+    read -p "Enter your choice (1/2/3): " -n 1 -r GIT_CHOICE
+    echo ""
+    echo ""
+
+    if [[ $GIT_CHOICE == "1" ]]; then
+        echo "📦 Initializing new git repository..."
+        git init
+        echo "✓ Git repository initialized"
+        echo ""
+        echo "💡 Don't forget to:"
+        echo "   - Add a remote: git remote add origin <your-repo-url>"
+        echo "   - Make your first commit after setup completes"
+        echo ""
+    elif [[ $GIT_CHOICE == "2" ]]; then
+        echo "⚠️  To clone from GitHub, please:"
+        echo "   1. Exit this script (Ctrl+C)"
+        echo "   2. Clone your repository: git clone <your-repo-url>"
+        echo "   3. cd into the cloned directory"
+        echo "   4. Run ./setup.sh again"
+        echo ""
+        read -p "Press Enter to continue anyway, or Ctrl+C to exit..."
+    else
+        echo "⚠️  Skipping git setup"
+        echo "   Note: Pre-commit hooks require a git repository"
+        echo ""
+    fi
+else
+    echo "✓ Git repository found"
+    # Show current remote if exists
+    if git remote get-url origin &> /dev/null; then
+        REMOTE_URL=$(git remote get-url origin)
+        echo "  Remote: $REMOTE_URL"
+    fi
+    echo ""
+fi
+
 # Check Python version
 PYTHON_CMD=""
 if command -v python3 &> /dev/null; then
@@ -65,8 +110,14 @@ echo "📚 Installing Python dependencies..."
 pip install -r requirements.txt -q
 
 # Install pre-commit hooks
-echo "🪝 Installing pre-commit hooks..."
-pre-commit install
+if [ -d ".git" ]; then
+    echo "🪝 Installing pre-commit hooks..."
+    pre-commit install
+    echo "✓ Pre-commit hooks installed"
+else
+    echo "⚠️  Skipping pre-commit hooks (no git repository)"
+    echo "   Run 'pre-commit install' after initializing git"
+fi
 
 # Check for Node.js and nvm
 echo ""
