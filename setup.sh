@@ -73,36 +73,36 @@ print_error() {
 detect_project_type() {
     # Check for signs of existing codebase (modernization)
     local has_existing_code=false
-    
+
     # Look for substantial Python code (not just scaffold)
     if [ -d "src" ] && find src -name "*.py" -type f 2>/dev/null | head -1 | grep -q .; then
         has_existing_code=true
     fi
-    
+
     # Look for backend/frontend directories with code
     if [ -d "backend/src" ] || [ -d "frontend/src" ]; then
         if find backend frontend -name "*.py" -o -name "*.js" -o -name "*.ts" -o -name "*.tsx" 2>/dev/null | head -5 | grep -q .; then
             has_existing_code=true
         fi
     fi
-    
+
     # Look for package.json or requirements.txt with dependencies (not just our scaffold)
     if [ -f "requirements.txt" ] && [ $(wc -l < requirements.txt) -gt 10 ]; then
         has_existing_code=true
     fi
-    
+
     if [ -f "package.json" ] && grep -q "\"dependencies\"" package.json 2>/dev/null; then
         local dep_count=$(grep -A 50 "\"dependencies\"" package.json | grep ":" | wc -l)
         if [ "$dep_count" -gt 3 ]; then
             has_existing_code=true
         fi
     fi
-    
+
     # Look for Django/Flask/Express specific files
     if [ -f "manage.py" ] || [ -f "app.py" ] || [ -f "server.js" ]; then
         has_existing_code=true
     fi
-    
+
     if [ "$has_existing_code" = true ]; then
         echo "modernization"
     else
@@ -179,7 +179,7 @@ if [ "$PROJECT_TYPE" = "modernization" ]; then
     FRAMEWORK=$(detect_framework)
     STRUCTURE=$(detect_structure)
     TEST_COUNT=$(count_tests)
-    
+
     echo "   Language(s): $LANGUAGES"
     echo "   Framework: $FRAMEWORK"
     echo "   Structure: $STRUCTURE"
@@ -212,7 +212,7 @@ if [ ! -d ".git" ]; then
         read -p "Enter your choice (1/2/3): " -n 1 -r GIT_CHOICE
         echo ""
         echo ""
-        
+
         if [[ $GIT_CHOICE == "1" ]]; then
             echo "📦 Initializing new git repository..."
             git init
@@ -336,7 +336,7 @@ if [[ "$LANGUAGES" == *"JavaScript"* ]] || [ -f "package.json" ]; then
             echo "⚠️  Please install Node.js 20+ or nvm for JS/TS linting"
         fi
     fi
-    
+
     # Install Node dependencies if package.json exists
     if [ -f "package.json" ]; then
         echo "📦 Installing Node.js dependencies..."
@@ -354,51 +354,51 @@ echo ""
 # Modernization-specific imports
 if [ "$PROJECT_TYPE" = "modernization" ]; then
     print_step "Importing modernization scaffolding..."
-    
+
     # Create modernization directories
     mkdir -p docs/modernization
     mkdir -p scripts/modernize
     mkdir -p tmp
-    
+
     # Copy .cursorrules if not exists
     if [ ! -f ".cursorrules" ] && [ -f "$SCRIPT_DIR/.cursorrules" ]; then
         cp "$SCRIPT_DIR/.cursorrules" .
         print_success "Copied .cursorrules"
     fi
-    
+
     # Copy scripts directories
     if [ ! -d "scripts/github" ] && [ -d "$SCRIPT_DIR/scripts/github" ]; then
         mkdir -p scripts
         cp -r "$SCRIPT_DIR/scripts/github" scripts/
         print_success "Copied scripts/github/"
     fi
-    
+
     if [ ! -d "scripts/quality" ] && [ -d "$SCRIPT_DIR/scripts/quality" ]; then
         mkdir -p scripts
         cp -r "$SCRIPT_DIR/scripts/quality" scripts/
         print_success "Copied scripts/quality/"
     fi
-    
+
     if [ ! -d "scripts/utils" ] && [ -d "$SCRIPT_DIR/scripts/utils" ]; then
         mkdir -p scripts
         cp -r "$SCRIPT_DIR/scripts/utils" scripts/
         print_success "Copied scripts/utils/"
     fi
-    
+
     if [ ! -d "scripts/modernize" ] && [ -d "$SCRIPT_DIR/scripts/modernize" ]; then
         mkdir -p scripts
         cp -r "$SCRIPT_DIR/scripts/modernize" scripts/
         print_success "Copied scripts/modernize/"
     fi
-    
+
     # Copy docs structure
     mkdir -p docs/architecture docs/api docs/guides docs/planning/features
-    
+
     if [ ! -f "docs/planning/features/template.md" ] && [ -f "$SCRIPT_DIR/docs/planning/features/template.md" ]; then
         cp "$SCRIPT_DIR/docs/planning/features/template.md" docs/planning/features/
         print_success "Copied docs/planning/features/template.md"
     fi
-    
+
     # Copy planning documents
     if [ -d "$SCRIPT_DIR/docs/planning/features" ]; then
         for plan in "$SCRIPT_DIR"/docs/planning/features/FEAT-*.md; do
@@ -411,7 +411,7 @@ if [ "$PROJECT_TYPE" = "modernization" ]; then
             fi
         done
     fi
-    
+
     # Merge .gitignore
     if [ -f "$SCRIPT_DIR/.gitignore" ]; then
         if [ -f ".gitignore" ]; then
@@ -426,26 +426,65 @@ if [ "$PROJECT_TYPE" = "modernization" ]; then
             print_success "Copied .gitignore"
         fi
     fi
-    
+
     # Copy other config files
     if [ ! -f ".gitattributes" ] && [ -f "$SCRIPT_DIR/.gitattributes" ]; then
         cp "$SCRIPT_DIR/.gitattributes" .
         print_success "Copied .gitattributes"
     fi
-    
+
     if [ ! -f ".env.example" ] && [ -f "$SCRIPT_DIR/.env.example" ]; then
         cp "$SCRIPT_DIR/.env.example" .
         print_success "Copied .env.example"
     fi
-    
+
     print_skip "Skipped .env (contains secrets)"
-    
+
     # Copy pre-commit config
     if [ ! -f ".pre-commit-config.yaml" ] && [ -f "$SCRIPT_DIR/.pre-commit-config.yaml" ]; then
         cp "$SCRIPT_DIR/.pre-commit-config.yaml" .
         print_success "Copied .pre-commit-config.yaml"
     fi
-    
+
+    # Copy linter configs
+    if [ ! -f "ruff.toml" ] && [ -f "$SCRIPT_DIR/ruff.toml" ]; then
+        cp "$SCRIPT_DIR/ruff.toml" .
+        print_success "Copied ruff.toml"
+    fi
+
+    if [ ! -f "pyproject.toml" ] && [ -f "$SCRIPT_DIR/pyproject.toml" ]; then
+        cp "$SCRIPT_DIR/pyproject.toml" .
+        print_success "Copied pyproject.toml"
+    fi
+
+    if [ ! -f ".eslintrc.js" ] && [ -f "$SCRIPT_DIR/.eslintrc.js" ]; then
+        cp "$SCRIPT_DIR/.eslintrc.js" .
+        print_success "Copied .eslintrc.js"
+    fi
+
+    if [ ! -f ".stylelintrc.json" ] && [ -f "$SCRIPT_DIR/.stylelintrc.json" ]; then
+        cp "$SCRIPT_DIR/.stylelintrc.json" .
+        print_success "Copied .stylelintrc.json"
+    fi
+
+    if [ ! -f "package.json" ] && [ -f "$SCRIPT_DIR/package.json" ]; then
+        cp "$SCRIPT_DIR/package.json" .
+        print_success "Copied package.json"
+    fi
+
+    # Copy docs/templates directory
+    if [ ! -d "docs/templates" ] && [ -d "$SCRIPT_DIR/docs/templates" ]; then
+        mkdir -p docs
+        cp -r "$SCRIPT_DIR/docs/templates" docs/
+        print_success "Copied docs/templates/"
+    fi
+
+    # Copy requirements.txt if not exists
+    if [ ! -f "requirements.txt" ] && [ -f "$SCRIPT_DIR/requirements.txt" ]; then
+        cp "$SCRIPT_DIR/requirements.txt" .
+        print_success "Copied requirements.txt"
+    fi
+
     # Create modernization templates
     cat > docs/modernization/assessment.md << 'EOF'
 # Legacy Codebase Assessment
@@ -488,7 +527,7 @@ Generated: $(date +%Y-%m-%d)
 ## Next Steps
 EOF
     print_success "Created docs/modernization/assessment.md"
-    
+
     cat > docs/modernization/characterization-tests.md << 'EOF'
 # Characterization Tests Progress
 
@@ -508,7 +547,7 @@ EOF
 - **Overall Coverage**: 0% (goal: 80%)
 EOF
     print_success "Created docs/modernization/characterization-tests.md"
-    
+
     cat > docs/modernization/refactor-plan.md << 'EOF'
 # Legacy Code Refactor Plan
 
@@ -549,7 +588,7 @@ This plan breaks the modernization into discrete, safe tasks.
 Use GitHub Issues and Kanban board.
 EOF
     print_success "Created docs/modernization/refactor-plan.md"
-    
+
     cat > tmp/README.md << 'EOF'
 # Temporary Files Directory
 
@@ -567,7 +606,7 @@ This directory is for temporary files created during development and modernizati
 - Use descriptive names: `session-summary-YYYY-MM-DD.md`
 EOF
     print_success "Created tmp/README.md"
-    
+
     echo ""
 fi
 
@@ -600,7 +639,7 @@ if [ "$PROJECT_TYPE" = "modernization" ]; then
     # Generate modernization handoff
     if [ -f "$SCRIPT_DIR/docs/templates/handoff-modernization-template.md" ]; then
         HANDOFF_FILE="tmp/cursor-handoff-modernization.md"
-        
+
         # Build JSON for handoff generation
         cat > /tmp/handoff_vars.json << JSONEOF
 {
@@ -636,20 +675,20 @@ if [ "$PROJECT_TYPE" = "modernization" ]; then
   "SCAFFOLD_GITHUB_URL": "Not yet pushed (local only)"
 }
 JSONEOF
-        
+
         if [ -f "$SCRIPT_DIR/scripts/modernize/generate_handoff.py" ]; then
             $PYTHON_CMD "$SCRIPT_DIR/scripts/modernize/generate_handoff.py" \
                 "$SCRIPT_DIR/docs/templates/handoff-modernization-template.md" \
                 "/tmp/handoff_vars.json" > /dev/null 2>&1
-            
+
             rm /tmp/handoff_vars.json
-            
+
             if [ -f "$HANDOFF_FILE" ]; then
                 print_success "Generated modernization handoff: $HANDOFF_FILE"
             fi
         fi
     fi
-    
+
     # Create quick start guide
     cat > tmp/QUICK_START.md << 'EOFQS'
 # Quick Start - New Cursor Session (Modernization)
@@ -689,26 +728,26 @@ cat docs/modernization/assessment.md
 ```
 EOFQS
     print_success "Created quick start guide: tmp/QUICK_START.md"
-    
+
 else
     # Generate greenfield handoff
     if [ -f "$SCRIPT_DIR/docs/templates/handoff-greenfield-template.md" ]; then
         HANDOFF_FILE="tmp/cursor-handoff-greenfield.md"
-        
+
         ENV_STATUS="needs configuration"
         [ -f ".env" ] && ENV_STATUS="configured"
-        
+
         GITHUB_STATUS="⏳"
         GITHUB_DETAILS="- **Status:** Not yet created\n- **Action:** Run \`python scripts/github/create_repo_and_project.py\`"
         GIT_REMOTE="Not yet configured"
         KANBAN_URL="<will be set after repo creation>"
-        
+
         if git remote get-url origin &> /dev/null; then
             GIT_REMOTE=$(git remote get-url origin)
             GITHUB_STATUS="✅"
             GITHUB_DETAILS="- **Repository:** $GIT_REMOTE\n- **Status:** Created"
         fi
-        
+
         cat > /tmp/greenfield_handoff_vars.json << JSONEOF
 {
   "PROJECT_NAME": "$PROJECT_NAME",
@@ -749,14 +788,14 @@ else
   "NEXT_PHASE": "Planning & Feature Development"
 }
 JSONEOF
-        
+
         if [ -f "$SCRIPT_DIR/scripts/utils/generate_greenfield_handoff.py" ]; then
             $PYTHON_CMD "$SCRIPT_DIR/scripts/utils/generate_greenfield_handoff.py" \
                 "$SCRIPT_DIR/docs/templates/handoff-greenfield-template.md" \
                 "/tmp/greenfield_handoff_vars.json" > /dev/null 2>&1
-            
+
             rm /tmp/greenfield_handoff_vars.json
-            
+
             if [ -f "$HANDOFF_FILE" ]; then
                 print_success "Generated greenfield handoff: $HANDOFF_FILE"
             fi
@@ -769,7 +808,7 @@ echo ""
 # Handle .env creation if token provided
 if [ -n "$GITHUB_TOKEN" ]; then
     print_step "Creating .env file with provided token..."
-    
+
     if [ -f ".env" ]; then
         print_warning ".env file already exists"
         read -p "Overwrite with new token? (y/N): " -n 1 -r
@@ -799,7 +838,7 @@ if [ "$PROJECT_TYPE" = "modernization" ]; then
     echo "  1. Review changes:"
     echo "     git diff"
     echo ""
-    
+
     if [ -z "$GITHUB_TOKEN" ]; then
         echo "  2. Update .env with GitHub API key:"
         echo "     cp .env.example .env && nano .env"
@@ -810,7 +849,7 @@ if [ "$PROJECT_TYPE" = "modernization" ]; then
         echo ""
         NEXT_STEP=2
     fi
-    
+
     echo "  $NEXT_STEP. Commit template import:"
     echo "     git add . && git commit -m 'chore: import modernization template'"
     echo ""
@@ -832,7 +871,7 @@ else
     echo "  1. Activate virtual environment:"
     echo "     source .venv/bin/activate"
     echo ""
-    
+
     if [ -z "$GITHUB_TOKEN" ]; then
         echo "  2. Configure environment:"
         echo "     cp .env.example .env && nano .env"
@@ -843,7 +882,7 @@ else
         echo ""
         NEXT_STEP=2
     fi
-    
+
     echo "  $NEXT_STEP. Create GitHub repository:"
     echo "     python scripts/github/create_repo_and_project.py --name \"$PROJECT_NAME\" --private --init-git"
     echo ""

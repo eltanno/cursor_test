@@ -29,24 +29,35 @@ class GitHubAPIError(Exception):
 class GitHubAPI:
     """Wrapper for GitHub REST API and GraphQL API."""
 
-    def __init__(self):
-        """Initialize GitHub API client with credentials from environment."""
+    def __init__(self, require_repo_config: bool = True):
+        """Initialize GitHub API client with credentials from environment.
+
+        Args:
+            require_repo_config: If True, require GITHUB_OWNER, GITHUB_REPO, and
+                GITHUB_PROJECT_NUMBER in environment. If False, only GITHUB_API_KEY
+                is required (useful for creating new repos).
+        """
         self.token = os.getenv('GITHUB_API_KEY')
         self.owner = os.getenv('GITHUB_OWNER')
         self.repo = os.getenv('GITHUB_REPO')
         project_num = os.getenv('GITHUB_PROJECT_NUMBER')
 
-        # Validate required environment variables
+        # Always require token
         if not self.token:
             raise GitHubAPIError('GITHUB_API_KEY not found in environment')
-        if not self.owner:
-            raise GitHubAPIError('GITHUB_OWNER not found in environment')
-        if not self.repo:
-            raise GitHubAPIError('GITHUB_REPO not found in environment')
-        if not project_num:
-            raise GitHubAPIError('GITHUB_PROJECT_NUMBER not found in environment')
 
-        self.project_number = int(project_num)
+        # Conditionally require repo configuration
+        if require_repo_config:
+            if not self.owner:
+                raise GitHubAPIError('GITHUB_OWNER not found in environment')
+            if not self.repo:
+                raise GitHubAPIError('GITHUB_REPO not found in environment')
+            if not project_num:
+                raise GitHubAPIError('GITHUB_PROJECT_NUMBER not found in environment')
+            self.project_number = int(project_num)
+        else:
+            # For repo creation, these will be set later
+            self.project_number = None
 
         self.base_url = 'https://api.github.com'
         self.graphql_url = 'https://api.github.com/graphql'
