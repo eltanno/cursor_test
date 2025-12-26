@@ -291,52 +291,56 @@ project/
 
 ### Multi-Tier Directory Layout (Monorepo)
 
-Use this structure for full-stack applications with frontend, backend, and database:
+Use this structure for full-stack applications with frontend, backend, and database.
+
+**Default Stack:** Django (Python) + React (TypeScript) + PostgreSQL
 
 ```
 project/
-├── frontend/              # Frontend application (React/Vue/Angular/Svelte)
+├── frontend/              # React application (TypeScript)
 │   ├── src/              # Frontend source code
-│   │   ├── components/
-│   │   ├── pages/
-│   │   ├── services/     # API clients
+│   │   ├── components/   # React components
+│   │   ├── pages/        # Page components
+│   │   ├── services/     # API clients (Django REST API)
+│   │   ├── hooks/        # Custom React hooks
 │   │   ├── utils/
+│   │   ├── styles/
 │   │   └── config/
 │   ├── tests/
-│   │   ├── unit/
-│   │   ├── integration/
-│   │   └── e2e/
+│   │   ├── unit/         # Component tests (Jest/Vitest)
+│   │   ├── integration/  # API integration tests
+│   │   └── e2e/          # E2E tests (feature-dependent)
 │   ├── Dockerfile
 │   ├── package.json
 │   └── README.md
-├── backend/               # Backend application (Python/Node.js/Go)
-│   ├── src/              # Backend source code
-│   │   ├── api/          # REST/GraphQL endpoints
-│   │   ├── services/     # Business logic
-│   │   ├── models/       # Data models
-│   │   ├── utils/
-│   │   └── config/
+├── backend/               # Django application (Python)
+│   ├── src/              # Django project
+│   │   ├── apps/         # Django apps
+│   │   │   ├── accounts/ # User management
+│   │   │   ├── api/      # Django REST Framework
+│   │   │   └── core/     # Core app
+│   │   ├── config/       # Django settings (base, dev, prod)
+│   │   └── manage.py
 │   ├── tests/
-│   │   ├── unit/
-│   │   ├── integration/
-│   │   └── e2e/
+│   │   ├── unit/         # Django unit tests (pytest)
+│   │   ├── integration/  # API tests
+│   │   └── e2e/          # Backend E2E (feature-dependent)
+│   ├── requirements/     # Python dependencies (base, dev, prod)
 │   ├── Dockerfile
-│   ├── requirements.txt  # or package.json
+│   ├── ruff.toml
 │   └── README.md
-├── database/              # Database configuration
-│   ├── migrations/       # Schema migrations
-│   ├── seeds/            # Test/demo data
-│   ├── init/             # Initial setup scripts
-│   └── README.md
-├── shared/                # Shared code across tiers (optional)
+├── data/                  # PostgreSQL Docker volume mount (gitignored)
+│   └── .gitkeep
+├── shared/                # Shared code (optional)
 │   ├── types/            # TypeScript types
-│   ├── constants/        # Shared constants
-│   └── schemas/          # API schemas/contracts
-├── scripts/               # INFRASTRUCTURE CODE (same as single-tier)
+│   └── api-schema/       # API contracts (OpenAPI)
+├── scripts/               # INFRASTRUCTURE CODE
 │   ├── github/
 │   ├── quality/
 │   ├── docker/           # Docker helper scripts
-│   └── deploy/           # Deployment scripts
+│   │   ├── migrate.sh    # Run Django migrations
+│   │   └── test_all.sh
+│   └── deploy/
 ├── tests/                 # Cross-tier integration tests
 │   └── e2e/              # Full-stack E2E tests
 ├── docs/                  # Documentation
@@ -344,14 +348,21 @@ project/
 │   ├── api/
 │   ├── planning/
 │   └── guides/
-│       ├── frontend-guide.md
-│       ├── backend-guide.md
+│       ├── frontend-react.md
+│       ├── backend-django.md
 │       └── docker-guide.md
 ├── docker-compose.yml     # Local development
 ├── docker-compose.prod.yml
 ├── tmp/                   # Temporary files (gitignored)
 └── .cursorrules          # This file
 ```
+
+**Key Notes for Django Stack:**
+- No `database/` folder - Django handles migrations via `python manage.py migrate`
+- `data/` folder for PostgreSQL Docker volume (gitignored except `.gitkeep`)
+- Django apps under `backend/src/apps/`
+- Settings split: base, dev, prod configs
+- Django REST Framework for API endpoints
 
 ### Code Organization Principles
 
@@ -391,10 +402,13 @@ project/
    - Each tier has optimized Dockerfile
    - `docker-compose.yml` for local development
    - One command: `docker-compose up`
+   - Django migrations run automatically on backend start
 
 4. **Testing Strategy**
-   - Each tier: own unit/integration/e2e tests
-   - Root `tests/e2e/`: cross-tier full-stack tests
+   - **Always**: Unit tests for all new code (minimum 90% coverage)
+   - **Feature-Dependent**: E2E tests for user-facing features
+   - Each tier: own unit/integration tests
+   - Root `tests/e2e/`: cross-tier full-stack E2E tests
    - All tier tests must pass before PR
 
 5. **Git Workflow**

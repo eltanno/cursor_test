@@ -15,6 +15,11 @@ type: architecture
 
 Define a comprehensive, opinionated structure for 3-tier applications (frontend, backend, database) that maintains existing development standards (planning-first, TDD, linting, GitFlow) while supporting containerized development with Docker.
 
+**Default Stack:**
+- **Frontend**: React (TypeScript)
+- **Backend**: Django (Python)
+- **Database**: PostgreSQL (containerized, Django handles migrations)
+
 ## Business Value
 
 - **Consistency**: Single structure for all multi-tier projects
@@ -82,114 +87,114 @@ Define a comprehensive, opinionated structure for 3-tier applications (frontend,
 
 ## Proposed Directory Structure
 
+**Django + React + PostgreSQL Stack:**
+
 ```
 project/
-├── frontend/                  # Frontend application (React/Vue/Angular/Svelte)
-│   ├── src/                  # Frontend source code
-│   │   ├── components/       # UI components
+├── frontend/                  # React application (TypeScript)
+│   ├── src/
+│   │   ├── components/       # React components
 │   │   ├── pages/            # Page components
-│   │   ├── services/         # API clients
+│   │   ├── services/         # API clients (Django REST API)
+│   │   ├── hooks/            # Custom React hooks
 │   │   ├── utils/            # Frontend utilities
 │   │   ├── styles/           # Global styles
+│   │   ├── types/            # TypeScript types
 │   │   └── config/           # Frontend configuration
 │   ├── tests/
-│   │   ├── unit/             # Component tests
+│   │   ├── unit/             # Component unit tests (Jest/Vitest)
 │   │   ├── integration/      # API integration tests
-│   │   └── e2e/              # Frontend E2E tests
+│   │   └── e2e/              # Frontend E2E tests (Playwright/Cypress)
 │   ├── public/               # Static assets
-│   ├── Dockerfile            # Frontend container
+│   ├── Dockerfile            # Multi-stage build (dev/prod)
 │   ├── .dockerignore
 │   ├── package.json
-│   ├── tsconfig.json         # TypeScript config
-│   ├── .eslintrc.js          # Frontend-specific ESLint
-│   ├── .stylelintrc.json     # Frontend-specific Stylelint
-│   └── README.md             # Frontend documentation
-│
-├── backend/                   # Backend application (Python/Node.js/Go)
-│   ├── src/                  # Backend source code
-│   │   ├── api/              # REST/GraphQL endpoints
-│   │   │   ├── routes/       # Route definitions
-│   │   │   └── handlers/     # Request handlers
-│   │   ├── services/         # Business logic layer
-│   │   ├── models/           # Data models/ORM
-│   │   ├── middleware/       # Auth, logging, etc.
-│   │   ├── utils/            # Backend utilities
-│   │   └── config/           # Backend configuration
-│   ├── tests/
-│   │   ├── unit/             # Service/model tests
-│   │   ├── integration/      # API integration tests
-│   │   └── e2e/              # Backend E2E tests
-│   ├── Dockerfile            # Backend container
-│   ├── .dockerignore
-│   ├── requirements.txt      # Python dependencies
-│   │   # OR package.json     # Node.js dependencies
-│   ├── ruff.toml             # Python-specific Ruff config
-│   │   # OR .eslintrc.js     # Node.js-specific ESLint
-│   └── README.md             # Backend documentation
-│
-├── database/                  # Database configuration and migrations
-│   ├── migrations/           # Schema migrations
-│   │   └── versions/         # Timestamped migration files
-│   ├── seeds/                # Test/demo data
-│   │   ├── dev/              # Development seeds
-│   │   └── test/             # Test seeds
-│   ├── init/                 # Initial setup scripts
-│   │   └── 001_create_schema.sql
-│   ├── Dockerfile            # Custom DB image (if needed)
-│   └── README.md             # Database documentation
-│
-├── shared/                    # Shared code across tiers (optional)
-│   ├── types/                # TypeScript type definitions
-│   ├── constants/            # Shared constants
-│   ├── schemas/              # API schemas/contracts (OpenAPI, GraphQL)
+│   ├── tsconfig.json
+│   ├── .eslintrc.js          # React-specific rules
+│   ├── .stylelintrc.json
 │   └── README.md
 │
-├── scripts/                   # Infrastructure code (same as single-tier)
+├── backend/                   # Django application (Python)
+│   ├── src/                  # Django project
+│   │   ├── apps/             # Django apps
+│   │   │   ├── accounts/     # User management
+│   │   │   ├── api/          # Django REST Framework APIs
+│   │   │   └── core/         # Core app (shared models, utils)
+│   │   ├── config/           # Django settings
+│   │   │   ├── settings/
+│   │   │   │   ├── base.py   # Base settings
+│   │   │   │   ├── dev.py    # Development settings
+│   │   │   │   └── prod.py   # Production settings
+│   │   │   ├── urls.py
+│   │   │   └── wsgi.py
+│   │   └── manage.py
+│   ├── tests/
+│   │   ├── unit/             # Django unit tests
+│   │   ├── integration/      # API integration tests
+│   │   └── e2e/              # Backend E2E tests
+│   ├── requirements/         # Python dependencies
+│   │   ├── base.txt          # Base requirements
+│   │   ├── dev.txt           # Development requirements
+│   │   └── prod.txt          # Production requirements
+│   ├── Dockerfile            # Multi-stage build (dev/prod)
+│   ├── .dockerignore
+│   ├── ruff.toml             # Python linting
+│   ├── pytest.ini            # Pytest configuration
+│   └── README.md
+│
+├── data/                      # Docker volume mount for PostgreSQL data
+│   └── .gitkeep              # Keep directory in git (data/ in .gitignore)
+│
+├── shared/                    # Shared code (optional)
+│   ├── types/                # Shared TypeScript types
+│   └── api-schema/           # API schema/contracts (OpenAPI)
+│
+├── scripts/                   # Infrastructure code
 │   ├── github/               # GitHub API utilities
 │   ├── quality/              # Linting, pre-PR checks
 │   ├── docker/               # Docker helper scripts
 │   │   ├── build_all.sh      # Build all containers
-│   │   ├── test_all.sh       # Run all tier tests
+│   │   ├── test_all.sh       # Run all tests
+│   │   ├── migrate.sh        # Run Django migrations
 │   │   └── clean.sh          # Clean Docker artifacts
 │   └── deploy/               # Deployment scripts
-│       ├── deploy_frontend.sh
-│       ├── deploy_backend.sh
-│       └── deploy_all.sh
 │
 ├── docs/                      # Documentation
-│   ├── architecture/         # Architecture decision records
-│   │   └── ADR-001-monorepo.md
+│   ├── architecture/
 │   ├── api/                  # API documentation
 │   ├── planning/
-│   │   └── features/
 │   └── guides/
 │       ├── getting-started.md
-│       ├── frontend-guide.md
-│       ├── backend-guide.md
-│       ├── database-guide.md
+│       ├── frontend-react.md
+│       ├── backend-django.md
 │       └── docker-guide.md
 │
 ├── tests/                     # Cross-tier integration tests
 │   └── e2e/                  # Full-stack E2E tests
 │       ├── user-flows/       # Complete user journeys
-│       └── api-to-ui/        # Backend → Frontend flows
+│       └── fixtures/         # Test data/fixtures
 │
 ├── .github/
-│   └── workflows/            # CI/CD pipelines
-│       ├── frontend.yml      # Frontend CI
-│       ├── backend.yml       # Backend CI
-│       ├── database.yml      # Database migration tests
-│       └── integration.yml   # Full-stack integration tests
+│   └── workflows/
+│       ├── frontend.yml      # React CI
+│       ├── backend.yml       # Django CI
+│       └── integration.yml   # Full-stack tests
 │
-├── docker-compose.yml         # Local development environment
-├── docker-compose.prod.yml    # Production-like setup
-├── docker-compose.test.yml    # Testing environment
+├── docker-compose.yml         # Local development
+├── docker-compose.prod.yml    # Production-like
 ├── .env.example              # All environment variables
-├── .cursorrules              # Agent rules (applies to all tiers)
-├── .gitignore
-├── README.md                 # Project overview and quick start
-└── QUICKSTART.md             # Quick reference
+├── .cursorrules
+├── .gitignore                # Include data/* (keep .gitkeep)
+├── README.md
+└── QUICKSTART.md
 ```
+
+**Key Changes for Django:**
+- ✅ **No `database/` folder** - Django handles migrations via `python manage.py migrate`
+- ✅ **`data/` folder** - For PostgreSQL Docker volume (gitignored except `.gitkeep`)
+- ✅ **Django app structure** - Multiple apps under `backend/src/apps/`
+- ✅ **Settings split** - Base, dev, prod configs
+- ✅ **Django REST Framework** - For API endpoints
 
 ## Key Design Principles
 
@@ -237,26 +242,44 @@ project/
 
 ### 4. Testing Strategy
 
+**Feature-Dependent Approach:**
+- **Always**: Unit tests for all new code
+- **Feature-Dependent**: E2E tests for user-facing features
+- **Priority**: Fast feedback loop with unit tests, comprehensive E2E for critical flows
+
 **Tier-Specific Tests:**
-- Each tier has `tests/unit/`, `tests/integration/`, `tests/e2e/`
-- Tests run independently per tier
-- Fast feedback loop
+
+**Frontend (React):**
+- **Unit**: Component tests with Jest/Vitest + React Testing Library
+- **Integration**: API integration tests (mocked backend)
+- **E2E**: User flow tests with Playwright/Cypress (feature-dependent)
+
+**Backend (Django):**
+- **Unit**: Model, serializer, utility tests with pytest
+- **Integration**: Django REST API endpoint tests
+- **E2E**: Full API workflow tests (feature-dependent)
 
 **Cross-Tier Tests:**
 - Root `tests/e2e/` for full-stack scenarios
 - Run after all tier tests pass
-- Test complete user flows
+- Test complete user journeys (login, CRUD operations, etc.)
 
 **Test Pyramid:**
 ```
         /\
-       /  \    E2E (few, slow, expensive)
+       /  \    E2E (few, feature-dependent, slow)
       /____\
-     /      \  Integration (some, medium)
+     /      \  Integration (some, medium speed)
     /________\
-   /          \ Unit (many, fast, cheap)
+   /          \ Unit (many, fast, always required)
   /__________\
 ```
+
+**Django-Specific Testing:**
+- Use `pytest-django` for Django tests
+- Test database: Separate test DB created/destroyed per run
+- Fixtures: Django fixtures for test data
+- Coverage: Minimum 90% for unit tests
 
 ### 5. CI/CD Strategy
 
@@ -278,7 +301,7 @@ if: contains(github.event.commits.*.modified, 'backend/')
 
 ## Environment Variables Structure
 
-**Unified `.env` for all tiers:**
+**Unified `.env` for Django + React + PostgreSQL:**
 
 ```bash
 # GitHub Integration (used by scripts)
@@ -287,43 +310,41 @@ GITHUB_OWNER=your_username
 GITHUB_REPO=your_repo
 GITHUB_PROJECT_NUMBER=1
 
-# Frontend Configuration
+# Frontend (React) Configuration
 FRONTEND_PORT=3000
-FRONTEND_API_URL=http://localhost:8000/api
-FRONTEND_ENV=development
+REACT_APP_API_URL=http://localhost:8000/api
+REACT_APP_ENV=development
 
-# Backend Configuration
+# Backend (Django) Configuration
 BACKEND_PORT=8000
-BACKEND_HOST=0.0.0.0
-BACKEND_ENV=development
-BACKEND_DEBUG=true
-BACKEND_LOG_LEVEL=info
+DJANGO_SETTINGS_MODULE=config.settings.dev
+DJANGO_SECRET_KEY=your_django_secret_key_here
+DJANGO_DEBUG=True
+DJANGO_ALLOWED_HOSTS=localhost,127.0.0.1
+DJANGO_CORS_ALLOWED_ORIGINS=http://localhost:3000
 
-# Database Configuration
-DATABASE_URL=postgresql://user:password@postgres:5432/dbname
-DATABASE_HOST=postgres
-DATABASE_PORT=5432
-DATABASE_NAME=dbname
-DATABASE_USER=user
-DATABASE_PASSWORD=password
-
-# Database (PostgreSQL specific)
-POSTGRES_USER=user
-POSTGRES_PASSWORD=password
-POSTGRES_DB=dbname
+# Database (PostgreSQL) Configuration
+DATABASE_URL=postgresql://django_user:django_pass@postgres:5432/django_db
+POSTGRES_USER=django_user
+POSTGRES_PASSWORD=django_pass
+POSTGRES_DB=django_db
+POSTGRES_HOST=postgres
+POSTGRES_PORT=5432
 
 # Security
-JWT_SECRET=your_jwt_secret_here
-API_KEY=your_api_key_here
+DJANGO_SECRET_KEY=your_secret_key_here
+JWT_SECRET_KEY=your_jwt_secret_here
 
-# External Services (examples)
-REDIS_URL=redis://redis:6379
-ELASTICSEARCH_URL=http://elasticsearch:9200
+# External Services (optional)
+REDIS_URL=redis://redis:6379/0
+CELERY_BROKER_URL=redis://redis:6379/1
 ```
 
 ## Docker Compose Configuration
 
 ### Development Environment (`docker-compose.yml`)
+
+**Django + React + PostgreSQL setup:**
 
 ```yaml
 version: '3.8'
@@ -335,16 +356,19 @@ services:
       dockerfile: Dockerfile
       target: development
     ports:
-      - "${FRONTEND_PORT}:3000"
+      - "${FRONTEND_PORT:-3000}:3000"
     environment:
-      - REACT_APP_API_URL=${BACKEND_URL}
+      - REACT_APP_API_URL=http://localhost:8000/api
     volumes:
       - ./frontend/src:/app/src      # Hot reloading
-      - /app/node_modules            # Don't override
+      - ./frontend/public:/app/public
+      - /app/node_modules            # Prevent override
     depends_on:
       - backend
     networks:
       - app-network
+    stdin_open: true               # Keep container running
+    tty: true
 
   backend:
     build:
@@ -352,32 +376,43 @@ services:
       dockerfile: Dockerfile
       target: development
     ports:
-      - "${BACKEND_PORT}:8000"
+      - "${BACKEND_PORT:-8000}:8000"
     environment:
-      - DATABASE_URL=${DATABASE_URL}
-      - DEBUG=${BACKEND_DEBUG}
+      - DJANGO_SETTINGS_MODULE=config.settings.dev
+      - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
+      - DJANGO_DEBUG=True
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      - POSTGRES_HOST=postgres
     volumes:
-      - ./backend/src:/app/src       # Hot reloading
+      - ./backend/src:/app/src       # Hot reloading (Django runserver)
     depends_on:
-      - postgres
-      - redis
+      postgres:
+        condition: service_healthy
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py runserver 0.0.0.0:8000"
     networks:
       - app-network
 
   postgres:
     image: postgres:15-alpine
     environment:
-      - POSTGRES_USER=${DATABASE_USER}
-      - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
-      - POSTGRES_DB=${DATABASE_NAME}
+      - POSTGRES_USER=${POSTGRES_USER:-django_user}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-django_pass}
+      - POSTGRES_DB=${POSTGRES_DB:-django_db}
     volumes:
-      - postgres-data:/var/lib/postgresql/data
-      - ./database/init:/docker-entrypoint-initdb.d
+      - ./data:/var/lib/postgresql/data  # Persistent data
     ports:
-      - "${DATABASE_PORT}:5432"
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-django_user}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     networks:
       - app-network
 
+  # Optional: Redis for caching/Celery
   redis:
     image: redis:7-alpine
     ports:
@@ -408,7 +443,10 @@ services:
       - "80:80"
     environment:
       - NODE_ENV=production
+      - REACT_APP_API_URL=https://api.yourdomain.com
     restart: unless-stopped
+    networks:
+      - app-network
 
   backend:
     build:
@@ -418,23 +456,39 @@ services:
     ports:
       - "8000:8000"
     environment:
+      - DJANGO_SETTINGS_MODULE=config.settings.prod
+      - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
+      - DJANGO_DEBUG=False
       - DATABASE_URL=${DATABASE_URL}
-      - ENVIRONMENT=production
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py collectstatic --noinput &&
+             gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 4"
     restart: unless-stopped
+    depends_on:
+      - postgres
+    networks:
+      - app-network
 
   postgres:
     image: postgres:15-alpine
     environment:
-      - POSTGRES_USER=${DATABASE_USER}
-      - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
-      - POSTGRES_DB=${DATABASE_NAME}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
     volumes:
       - postgres-data:/var/lib/postgresql/data
     restart: unless-stopped
+    networks:
+      - app-network
 
 volumes:
   postgres-data:
     driver: local
+
+networks:
+  app-network:
+    driver: bridge
 ```
 
 ## Git Workflow for Multi-Tier
@@ -715,15 +769,21 @@ If this plan is approved, the following tasks would be created:
 
 **Status:** Draft - Awaiting user review
 
-**Questions for User:**
+**User Feedback Received:**
 
-1. ✅ Monorepo structure confirmed?
-2. 📋 Typical tech stack preferences (React/Vue? Python/Node.js? PostgreSQL/MySQL)?
-3. 📋 Kubernetes needed, or Docker Compose sufficient?
-4. 📋 `shared/` directory for types/schemas?
-5. 📋 Any additional services (Redis, Elasticsearch, message queues)?
+1. ✅ **Monorepo structure** - Confirmed
+2. ✅ **Tech stack** - Django (Python) + React (TypeScript) + PostgreSQL
+3. ✅ **Database handling** - Django manages migrations (no `database/` folder needed)
+4. ✅ **Docker strategy** - Docker Compose for local development
+5. ✅ **Testing approach** - Unit tests always, E2E tests feature-dependent
+6. ✅ **Data persistence** - `data/` folder for PostgreSQL Docker volume (gitignored)
+
+**Remaining Questions:**
+
+- 📋 `shared/` directory for TypeScript types/API schemas? (Optional, can add later)
+- 📋 Additional services needed? (Redis shown in compose for caching/Celery)
 
 **Next Steps After Approval:**
-1. Update `.cursorrules` with multi-tier guidance
-2. Create ADR for monorepo decision
-3. Wait for user to create GitHub issues for implementation tasks
+1. Update `.cursorrules` with multi-tier guidance ✅ (included in PR)
+2. Create ADR for monorepo decision (future task)
+3. User creates GitHub issues for implementation tasks (templates, guides, etc.)
