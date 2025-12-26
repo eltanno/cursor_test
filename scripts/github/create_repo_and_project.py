@@ -37,13 +37,13 @@ def _copy_project_from_template(
     title: str,
 ) -> dict:
     """Copy project from template.
-    
+
     Args:
         api: GitHubAPI instance
         owner_id: Owner node ID
         template_number: Template project number
         title: New project title
-        
+
     Returns:
         Copied project data
     """
@@ -57,13 +57,13 @@ def _copy_project_from_template(
       }
     }
     """
-    
+
     template_result = api._make_graphql_request(
         template_query,
         {'owner': api.owner, 'number': template_number},
     )
     template_id = template_result['user']['projectV2']['id']
-    
+
     # Copy template
     copy_mutation = """
     mutation($projectId: ID!, $ownerId: ID!, $title: String!, $includeDraftIssues: Boolean!) {
@@ -82,7 +82,7 @@ def _copy_project_from_template(
       }
     }
     """
-    
+
     result = api._make_graphql_request(
         copy_mutation,
         {
@@ -92,7 +92,7 @@ def _copy_project_from_template(
             'includeDraftIssues': False,
         },
     )
-    
+
     return result['copyProjectV2']['projectV2']
 
 
@@ -102,12 +102,12 @@ def _create_project_from_scratch(
     title: str,
 ) -> dict:
     """Create project from scratch (legacy method).
-    
+
     Args:
         api: GitHubAPI instance
         owner_id: Owner node ID
         title: Project title
-        
+
     Returns:
         Created project data
     """
@@ -130,7 +130,7 @@ def _create_project_from_scratch(
         {'ownerId': owner_id, 'title': title},
     )
     project = result['createProjectV2']['projectV2']
-    
+
     return project
 
 
@@ -202,7 +202,7 @@ def create_project(api: GitHubAPI, repo_name: str) -> dict:
 
     # Check if template project is configured
     template_number = os.getenv('GITHUB_TEMPLATE_PROJECT_NUMBER')
-    
+
     if template_number and template_number.strip():
         # Copy from template
         print(f'   📋 Copying from template project #{template_number}')
@@ -214,35 +214,34 @@ def create_project(api: GitHubAPI, repo_name: str) -> dict:
         )
         print(f'   ✅ Project copied from template: {project["url"]}')
         print(f'   📋 Project number: {project["number"]}')
-        print(f'   🎉 Board view included!')
+        print('   🎉 Board view included!')
         return {
             'id': project['id'],
             'number': project['number'],
             'title': project['title'],
             'url': project['url'],
         }
-    else:
-        # Create from scratch (legacy method)
-        print('   📝 Creating project from scratch (no template configured)')
-        project = _create_project_from_scratch(api, owner_id, f'{repo_name} Kanban')
-        print(f'   ✅ Project created: {project["url"]}')
-        print(f'   📋 Project number: {project["number"]}')
-        
-        # Add columns
-        columns = [
-            'Backlog',
-            'Ready',
-            'In Progress',
-            'In Review',
-            'In Testing',
-            'Test Failed',
-            'Done',
-        ]
+    # Create from scratch (legacy method)
+    print('   📝 Creating project from scratch (no template configured)')
+    project = _create_project_from_scratch(api, owner_id, f'{repo_name} Kanban')
+    print(f'   ✅ Project created: {project["url"]}')
+    print(f'   📋 Project number: {project["number"]}')
 
-        print('\n   Adding columns...')
+    # Add columns
+    columns = [
+        'Backlog',
+        'Ready',
+        'In Progress',
+        'In Review',
+        'In Testing',
+        'Test Failed',
+        'Done',
+    ]
 
-        # Get the project's SingleSelect field for Status
-        get_fields_query = """
+    print('\n   Adding columns...')
+
+    # Get the project's SingleSelect field for Status
+    get_fields_query = """
         query($projectId: ID!) {
           node(id: $projectId) {
             ... on ProjectV2 {
@@ -263,24 +262,24 @@ def create_project(api: GitHubAPI, repo_name: str) -> dict:
         }
         """
 
-        fields_result = api._make_graphql_request(
-            get_fields_query,
-            {'projectId': project['id']},
-        )
+    fields_result = api._make_graphql_request(
+        get_fields_query,
+        {'projectId': project['id']},
+    )
 
-        # Find the Status field
-        status_field = None
-        for field in fields_result['node']['fields']['nodes']:
-            if field and field.get('name') == 'Status':
-                status_field = field
-                break
+    # Find the Status field
+    status_field = None
+    for field in fields_result['node']['fields']['nodes']:
+        if field and field.get('name') == 'Status':
+            status_field = field
+            break
 
-        if not status_field:
-            print('   ⚠️  Could not find Status field, columns not added')
-            print('   💡 You can add columns manually in the GitHub UI')
-        else:
-            # Update Status field options (columns)
-            update_field_query = """
+    if not status_field:
+        print('   ⚠️  Could not find Status field, columns not added')
+        print('   💡 You can add columns manually in the GitHub UI')
+    else:
+        # Update Status field options (columns)
+        update_field_query = """
             mutation($fieldId: ID!, $options: [ProjectV2SingleSelectFieldOptionInput!]!) {
               updateProjectV2Field(input: {
                 fieldId: $fieldId
@@ -299,31 +298,31 @@ def create_project(api: GitHubAPI, repo_name: str) -> dict:
             }
             """
 
-            options = [{'name': col, 'color': 'GRAY', 'description': ''} for col in columns]
+        options = [{'name': col, 'color': 'GRAY', 'description': ''} for col in columns]
 
-            api._make_graphql_request(
-                update_field_query,
-                {
-                    'fieldId': status_field['id'],
-                    'options': options,
-                },
-            )
+        api._make_graphql_request(
+            update_field_query,
+            {
+                'fieldId': status_field['id'],
+                'options': options,
+            },
+        )
 
-            print(f'   ✅ Added {len(columns)} columns: {", ".join(columns)}')
-        
-        print('\n   ⚠️  Note: Board view not created (only Table view)')
-        print('   💡 To add Board view:')
-        print(f'      1. Go to: {project["url"]}')
-        print('      2. Click "+" next to "View 1"')
-        print('      3. Select "New view" → "Board"')
-        print('      4. Name it "Kanban Board"')
+        print(f'   ✅ Added {len(columns)} columns: {", ".join(columns)}')
 
-        return {
-            'id': project['id'],
-            'number': project['number'],
-            'title': project['title'],
-            'url': project['url'],
-        }
+    print('\n   ⚠️  Note: Board view not created (only Table view)')
+    print('   💡 To add Board view:')
+    print(f'      1. Go to: {project["url"]}')
+    print('      2. Click "+" next to "View 1"')
+    print('      3. Select "New view" → "Board"')
+    print('      4. Name it "Kanban Board"')
+
+    return {
+        'id': project['id'],
+        'number': project['number'],
+        'title': project['title'],
+        'url': project['url'],
+    }
 
 
 def initialize_git(
