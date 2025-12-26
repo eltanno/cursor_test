@@ -251,7 +251,16 @@ tests/
 
 ## 📁 File Structure
 
-### Opinionated Directory Layout
+### Project Types
+
+This project structure supports **two types of projects:**
+
+1. **Single-Tier Projects** - One codebase, one language
+2. **Multi-Tier Projects** - Frontend + Backend + Database (3-tier architecture)
+
+### Single-Tier Directory Layout
+
+Use this structure for simple applications, APIs, or single-purpose services:
 
 ```
 project/
@@ -280,18 +289,82 @@ project/
 └── .cursorrules          # This file
 ```
 
+### Multi-Tier Directory Layout (Monorepo)
+
+Use this structure for full-stack applications with frontend, backend, and database:
+
+```
+project/
+├── frontend/              # Frontend application (React/Vue/Angular/Svelte)
+│   ├── src/              # Frontend source code
+│   │   ├── components/
+│   │   ├── pages/
+│   │   ├── services/     # API clients
+│   │   ├── utils/
+│   │   └── config/
+│   ├── tests/
+│   │   ├── unit/
+│   │   ├── integration/
+│   │   └── e2e/
+│   ├── Dockerfile
+│   ├── package.json
+│   └── README.md
+├── backend/               # Backend application (Python/Node.js/Go)
+│   ├── src/              # Backend source code
+│   │   ├── api/          # REST/GraphQL endpoints
+│   │   ├── services/     # Business logic
+│   │   ├── models/       # Data models
+│   │   ├── utils/
+│   │   └── config/
+│   ├── tests/
+│   │   ├── unit/
+│   │   ├── integration/
+│   │   └── e2e/
+│   ├── Dockerfile
+│   ├── requirements.txt  # or package.json
+│   └── README.md
+├── database/              # Database configuration
+│   ├── migrations/       # Schema migrations
+│   ├── seeds/            # Test/demo data
+│   ├── init/             # Initial setup scripts
+│   └── README.md
+├── shared/                # Shared code across tiers (optional)
+│   ├── types/            # TypeScript types
+│   ├── constants/        # Shared constants
+│   └── schemas/          # API schemas/contracts
+├── scripts/               # INFRASTRUCTURE CODE (same as single-tier)
+│   ├── github/
+│   ├── quality/
+│   ├── docker/           # Docker helper scripts
+│   └── deploy/           # Deployment scripts
+├── tests/                 # Cross-tier integration tests
+│   └── e2e/              # Full-stack E2E tests
+├── docs/                  # Documentation
+│   ├── architecture/
+│   ├── api/
+│   ├── planning/
+│   └── guides/
+│       ├── frontend-guide.md
+│       ├── backend-guide.md
+│       └── docker-guide.md
+├── docker-compose.yml     # Local development
+├── docker-compose.prod.yml
+├── tmp/                   # Temporary files (gitignored)
+└── .cursorrules          # This file
+```
+
 ### Code Organization Principles
 
 **Two distinct code categories:**
 
-1. **`./src/` - Application Code**
+1. **Application Code (`./src/` or `./frontend/`, `./backend/`)**
    - The actual software/product being built
    - Core business logic and user-facing functionality
    - What gets deployed or distributed to end users
    - Tested via `tests/unit/`, `tests/integration/`, `tests/e2e/`
    - Examples: web apps, APIs, services, libraries
 
-2. **`./scripts/` - Infrastructure Code**
+2. **Infrastructure Code (`./scripts/`)**
    - Support tools executed by agents or developers
    - Project management utilities (GitHub API, PR creation)
    - Quality checks (linting, pre-PR cleanup)
@@ -299,6 +372,38 @@ project/
    - NOT part of the application deliverable
 
 **Key distinction:** Scripts support *how we build*, source code is *what we build*.
+
+### Multi-Tier Principles
+
+**When using multi-tier structure:**
+
+1. **Each Tier is Self-Contained**
+   - Own `src/`, `tests/`, `Dockerfile`, `README.md`
+   - Can be deployed independently
+   - Tier-specific dependencies and configs
+
+2. **Shared Tooling at Root**
+   - `scripts/` used by all tiers
+   - Root `.cursorrules` applies to all tiers
+   - Shared pre-commit hooks
+
+3. **Docker-First Development**
+   - Each tier has optimized Dockerfile
+   - `docker-compose.yml` for local development
+   - One command: `docker-compose up`
+
+4. **Testing Strategy**
+   - Each tier: own unit/integration/e2e tests
+   - Root `tests/e2e/`: cross-tier full-stack tests
+   - All tier tests must pass before PR
+
+5. **Git Workflow**
+   - Feature branches can span multiple tiers
+   - Branch naming: `feature/user-auth` (spans tiers) or `feature/frontend-dark-mode` (single tier)
+   - Commits can be per-tier or combined for tightly coupled changes
+   - All affected tier tests must pass
+
+**See `docs/planning/features/FEAT-002-multi-tier-architecture.md` for complete details.**
 
 ### File Naming Conventions
 
