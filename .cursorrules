@@ -255,13 +255,17 @@ tests/
 
 ```
 project/
-├── src/                    # Source code
+├── src/                    # APPLICATION CODE - The software being built
 │   ├── core/              # Core business logic
 │   ├── services/          # External service integrations
 │   ├── models/            # Data models
 │   ├── utils/             # Utility functions
 │   ├── api/               # API endpoints/routes
 │   └── config/            # Configuration
+├── scripts/               # INFRASTRUCTURE CODE - Tooling and automation
+│   ├── github/            # GitHub API integrations (PR creation, issue management)
+│   ├── quality/           # Code quality checks (linting, dead code detection)
+│   └── utils/             # Shared utilities for scripts
 ├── tests/                 # All tests
 │   ├── unit/
 │   ├── integration/
@@ -269,10 +273,32 @@ project/
 ├── docs/                  # Documentation
 │   ├── architecture/      # Architecture decision records
 │   ├── api/              # API documentation
-│   └── guides/           # How-to guides
-├── scripts/               # Build/deploy scripts
+│   ├── guides/           # How-to guides
+│   └── planning/         # Planning documents
+│       └── features/     # Feature planning docs
+├── tmp/                   # Temporary files (gitignored)
 └── .cursorrules          # This file
 ```
+
+### Code Organization Principles
+
+**Two distinct code categories:**
+
+1. **`./src/` - Application Code**
+   - The actual software/product being built
+   - Core business logic and user-facing functionality
+   - What gets deployed or distributed to end users
+   - Tested via `tests/unit/`, `tests/integration/`, `tests/e2e/`
+   - Examples: web apps, APIs, services, libraries
+
+2. **`./scripts/` - Infrastructure Code**
+   - Support tools executed by agents or developers
+   - Project management utilities (GitHub API, PR creation)
+   - Quality checks (linting, pre-PR cleanup)
+   - Build, deployment, and automation scripts
+   - NOT part of the application deliverable
+
+**Key distinction:** Scripts support *how we build*, source code is *what we build*.
 
 ### File Naming Conventions
 
