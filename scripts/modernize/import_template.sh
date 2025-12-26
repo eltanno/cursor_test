@@ -487,9 +487,175 @@ For issues or questions, refer to the planning documents or create a GitHub issu
 EOF
 
 echo ""
+print_step "Generating Cursor handoff document..."
+
+# Generate handoff from template
+if [ -f "$TEMPLATE_ROOT/docs/templates/handoff-modernization-template.md" ]; then
+    HANDOFF_FILE="tmp/cursor-handoff-modernization.md"
+
+    # Extract project name from directory
+    PROJECT_NAME=$(basename "$TARGET_DIR")
+    CURRENT_DATE=$(date +%Y-%m-%d)
+    TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+
+    # Get current branch
+    CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null | tr -d '\n' || echo "main")
+
+    # Detect GitHub token if .env exists
+    GITHUB_TOKEN="your_token_here"
+    if [ -f ".env" ] && grep -q "GITHUB_API_KEY" .env; then
+        GITHUB_TOKEN="(found in .env)"
+    fi
+
+    # Determine architecture
+    if [ "$STRUCTURE" = "Multi-tier" ]; then
+        ARCHITECTURE="Multi-tier monorepo"
+    else
+        ARCHITECTURE="Monolithic"
+    fi
+
+    # Build JSON for Python script
+    cat > /tmp/handoff_vars.json << JSONEOF
+{
+  "PROJECT_NAME": "$PROJECT_NAME",
+  "CURRENT_DATE": "$CURRENT_DATE",
+  "PROJECT_DIR": "$(basename "$TARGET_DIR")",
+  "PREVIOUS_WORKSPACE": "<previous workspace>",
+  "ORIGINAL_PROJECT_PATH": "<original project path>",
+  "PROJECT_PATH": "$TARGET_DIR",
+  "SCAFFOLD_PATH": "$TEMPLATE_ROOT",
+  "TECH_STACK": "- **Languages:** ${LANGUAGES[*]:-Unknown}\\n- **Framework:** $FRAMEWORK\\n- **Structure:** $STRUCTURE",
+  "ARCHITECTURE": "**Architecture:** $ARCHITECTURE",
+  "WHY_MODERNIZING": "- No automated tests ($TEST_COUNT test files found)\\n- No linting/code quality tools detected\\n- Technical debt accumulated\\n- Needs systematic improvement with safety guarantees",
+  "EXCLUDED_ARTIFACTS": "(.db_data, caddy cache, node_modules, __pycache__, backups)",
+  "RSYNC_COMMAND": "rsync -av --exclude='.git' --exclude='node_modules' --exclude='__pycache__' --exclude='.venv' --exclude='tmp' <source> <target>",
+  "ANALYSIS_RESULTS": "- Language(s): ${LANGUAGES[*]:-Unknown}\\n- Framework: $FRAMEWORK\\n- Structure: $STRUCTURE\\n- Tests Found: **$TEST_COUNT files**\\n- Linters:$LINTERS\\n- CI/CD:$CICD",
+  "TIMESTAMP": "$TIMESTAMP",
+  "CURRENT_BRANCH": "$CURRENT_BRANCH",
+  "GITHUB_TOKEN": "$GITHUB_TOKEN",
+  "APPLICATION_SECRETS": "   - PIPELINES_API_KEY\\n   - POSTGRES_PASSWORD\\n   - REDIS_AUTH\\n   - (check existing .env for more)",
+  "SUGGESTED_REPO_NAME": "$PROJECT_NAME",
+  "SUGGESTED_REPO_DESCRIPTION": "$PROJECT_NAME - Modernized with TDD, linting, and automated testing",
+  "GITHUB_OWNER": "<from .env>",
+  "DEFAULT_BRANCH": "$CURRENT_BRANCH",
+  "EXAMPLE_FUNCTION": "example_function",
+  "EXAMPLE_BUG": "Returns incorrect value",
+  "EXAMPLE_INPUT": "test_input",
+  "EXAMPLE_OUTPUT": "actual_output",
+  "EXPECTED_OUTPUT": "expected_output",
+  "USER_STACK_PREFERENCES": "- **Backend:** Django (default)\\n- **Frontend:** React (default)\\n- **Database:** PostgreSQL (default)\\n- **Architecture:** Monorepo (multi-tier in one repo)\\n- **Containerization:** Docker Compose\\n- **Testing:** Unit tests (always) + E2E tests (feature-dependent)",
+  "USER_INFO": "- **GitHub Username:** (check .env for GITHUB_OWNER)\\n- **GitHub Token:** Stored in .env as GITHUB_API_KEY\\n- **Token Scopes:** repo, project, admin:org",
+  "GITHUB_URLS": "- **User's Projects:** https://github.com/users/<GITHUB_OWNER>/projects/\\n- **New Project:** Will be https://github.com/<GITHUB_OWNER>/$PROJECT_NAME (after Step 3)",
+  "SCAFFOLD_GITHUB_URL": "Not yet pushed (local only)"
+}
+JSONEOF
+
+    # Use Python script to generate handoff (handles multiline better than sed)
+    cd "$TARGET_DIR"
+    python3 "$SCRIPT_DIR/generate_handoff.py" \
+        "$TEMPLATE_ROOT/docs/templates/handoff-modernization-template.md" \
+        "/tmp/handoff_vars.json"
+
+    rm /tmp/handoff_vars.json
+
+    if [ -f "$HANDOFF_FILE" ]; then
+        print_success "Generated Cursor handoff: $HANDOFF_FILE"
+    else
+        print_warning "Failed to generate handoff (check Python script)"
+    fi
+else
+    print_warning "Handoff template not found, skipping handoff generation"
+fi
+
+# Also create quick start guide
+cat > tmp/QUICK_START.md << 'EOFQS'
+# Quick Start - New Cursor Session
+
+## 🚀 First Message to Agent
+
+When you open Cursor in this workspace, say:
+
+```
+Please read tmp/cursor-handoff-modernization.md and continue from there.
+
+I've updated the .env file with my GitHub API key.
+
+Let's proceed with:
+1. Committing the template import
+2. Creating the GitHub repository and project
+3. Running the codebase assessment
+```
+
+---
+
+## ⚡ Quick Commands
+
+### Activate Virtual Environment
+```bash
+source .venv/bin/activate
+```
+
+### Commit Template
+```bash
+git add .
+git commit -m "chore: import modernization template"
+```
+
+### Create GitHub Repo & Project
+```bash
+python scripts/github/create_repo_and_project.py \
+  --name "your-project-modernized" \
+  --description "Your project - Modernized with TDD, linting, and automated testing" \
+  --private \
+  --init-git
+```
+
+### Push to GitHub
+```bash
+git push -u origin main
+```
+
+### Run Assessment
+```bash
+python scripts/modernize/assess_codebase.py
+```
+
+### Review Assessment
+```bash
+cat docs/modernization/assessment.md
+```
+
+---
+
+## 📋 Current Status
+
+- ✅ Template imported
+- ⏳ .env needs GitHub API key
+- 🔜 Ready for repo creation
+- 🔜 Ready for assessment
+
+---
+
+## 📚 Key Files
+
+- `tmp/cursor-handoff-modernization.md` - Complete handoff (READ THIS FIRST)
+- `.cursorrules` - Complete development rules
+- `docs/planning/features/FEAT-003-legacy-code-modernization.md` - Modernization workflow
+- `.env` - Update with GitHub API key
+
+---
+
+**That's it! Open Cursor in this folder and reference the handoff document.** ✨
+EOFQS
+
+print_success "Created quick start guide: tmp/QUICK_START.md"
+
+echo ""
 echo -e "${GREEN}🎉 Template scaffolding imported successfully!${NC}"
 echo ""
 echo "📋 Import report saved to: $REPORT_FILE"
+echo "📋 Cursor handoff saved to: tmp/cursor-handoff-modernization.md"
+echo "📋 Quick start guide saved to: tmp/QUICK_START.md"
 echo ""
 echo -e "${BLUE}Next Steps:${NC}"
 echo "1. Review changes: git diff"
@@ -497,6 +663,11 @@ echo "2. Review .env.example and create .env"
 echo "3. Commit template: git add . && git commit -m \"chore: import modernization template\""
 echo "4. Run assessment: python scripts/modernize/assess_codebase.py"
 echo "5. Review assessment: docs/modernization/assessment.md"
+echo ""
+echo -e "${BLUE}For New Cursor Session:${NC}"
+echo "- Open Cursor in this directory"
+echo "- Read tmp/cursor-handoff-modernization.md for complete context"
+echo "- Or use tmp/QUICK_START.md for quick reference"
 echo ""
 echo -e "${BLUE}Documentation:${NC}"
 echo "- Planning: docs/planning/features/FEAT-003-legacy-code-modernization.md"
