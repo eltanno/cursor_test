@@ -1033,6 +1033,186 @@ python scripts/quality/pre_pr_check.py
 
 ---
 
+## 🔧 Legacy Code Modernization
+
+### When Working on Legacy Code
+
+**Legacy code** = Code without tests, unclear architecture, accumulated technical debt.
+
+**Different workflow than greenfield TDD:**
+
+1. **Import Template First**
+   ```bash
+   /path/to/cursor-test/scripts/modernize/import_template.sh
+   ```
+   - Non-destructive import of scaffolding
+   - Analyzes project structure
+   - Sets up tooling (linters, tests, pre-commit)
+
+2. **Assess Before Changing**
+   ```bash
+   python scripts/modernize/assess_codebase.py
+   ```
+   - Generates comprehensive assessment
+   - Identifies risks and opportunities
+   - Output: `docs/modernization/assessment.md`
+
+3. **Characterization Tests First**
+   - Write tests that prove CURRENT behavior
+   - Lock down existing functionality
+   - Create safety net for refactoring
+   - **Critical**: Test actual behavior (bugs and all), not ideal behavior
+
+4. **Plan Refactoring**
+   - Create discrete, safe tasks
+   - Document in `docs/modernization/refactor-plan.md`
+   - Create GitHub Issues:
+   ```bash
+   python scripts/modernize/create_refactor_issues.py docs/modernization/refactor-plan.md
+   ```
+
+5. **Refactor Safely**
+   - Small, incremental changes
+   - Characterization tests must always pass
+   - No behavior changes during refactoring
+   - Document bugs, fix in separate PRs
+
+### Characterization Testing Workflow
+
+**Goal**: Document what code ACTUALLY does (not what it should do).
+
+**Process**:
+1. Identify seam (place to insert test)
+2. Write test with dummy assertion: `assert result == ???`
+3. Run test (it fails, shows actual output)
+4. Update test to expect actual output
+5. Test passes (behavior locked down)
+6. Repeat for all critical paths and edge cases
+
+**Example**:
+```python
+def test_calculate_discount_current_behavior():
+    """
+    CHARACTERIZATION TEST - Documents existing behavior.
+
+    Current: Rounds mid-calculation (causes precision issues)
+    TODO: Fix in refactor phase (see issue #42)
+    """
+    result = calculate_discount(amount=10.00, percent=33)
+
+    # Test CURRENT behavior (even though it's wrong)
+    assert result == 6.71  # Bug: should be 6.70
+```
+
+### Agent Checklist Before Refactoring
+
+**Before Starting**:
+- [ ] Characterization tests exist (>80% coverage of code being refactored)
+- [ ] All tests currently passing
+- [ ] Feature branch created
+- [ ] Refactor plan task reviewed
+
+**During Refactoring**:
+- [ ] Make one small change at a time
+- [ ] Run characterization tests after each change
+- [ ] Commit frequently (every logical step)
+- [ ] Document any surprising discoveries
+
+**After Refactoring**:
+- [ ] All characterization tests still pass
+- [ ] New unit tests added (if new code/functions)
+- [ ] Linters pass
+- [ ] Manual smoke test of refactored feature
+- [ ] No behavior change verified
+
+### Agent Behavior for Legacy Code
+
+**ALWAYS:**
+- ✅ Check characterization tests exist before refactoring
+- ✅ Run tests after every change
+- ✅ Make small, incremental changes
+- ✅ Commit frequently
+- ✅ Document unexpected behavior
+- ✅ Verify no behavior change
+
+**NEVER:**
+- ❌ Refactor without characterization tests
+- ❌ Make multiple changes in one commit
+- ❌ Fix bugs during refactoring (separate PR)
+- ❌ Change behavior "because it's wrong" (document, fix later)
+- ❌ Skip manual smoke testing
+- ❌ Ignore test failures ("I'll fix later")
+
+### Refactoring Patterns
+
+**Extract Method**:
+```python
+# Before: Complex function
+def process_order(order_data):
+    # 50 lines of mixed logic
+    pass
+
+# After: Extracted methods
+def process_order(order_data):
+    validated = validate_order(order_data)
+    payment = process_payment(validated)
+    update_inventory(validated)
+    send_confirmation(validated)
+    return payment
+```
+
+**Extract Service**:
+```python
+# Before: Fat view/controller
+def checkout_view(request):
+    # Business logic mixed with presentation
+    pass
+
+# After: Thin controller, fat service
+def checkout_view(request):
+    service = CheckoutService()
+    result = service.process_checkout(request.data)
+    return render(result)
+```
+
+**Split Monolithic File**:
+```python
+# Before: models.py (1,200 lines)
+# All models in one file
+
+# After: models/ directory
+models/
+  __init__.py  # Re-exports all
+  user.py      # User models
+  product.py   # Product models
+  order.py     # Order models
+```
+
+### Documentation Structure
+
+**Assessment**: `docs/modernization/assessment.md`
+- Codebase analysis
+- Quality metrics
+- Risk identification
+- Refactor opportunities
+
+**Characterization Tests**: `docs/modernization/characterization-tests.md`
+- Track test coverage progress
+- Document quirks and bugs found
+- Link to actual test files
+
+**Refactor Plan**: `docs/modernization/refactor-plan.md`
+- Discrete tasks with priorities
+- Acceptance criteria
+- Dependencies
+- Risk mitigation
+
+### Complete Workflow
+
+See `docs/planning/features/FEAT-003-legacy-code-modernization.md` for complete details.
+
+---
+
 ## 📚 Remember
 
 > "Any fool can write code that a computer can understand. Good programmers write code that humans can understand." — Martin Fowler
