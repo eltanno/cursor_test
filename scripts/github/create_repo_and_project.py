@@ -172,9 +172,8 @@ def create_project(api: GitHubAPI, repo_name: str) -> dict:
     else:
         # Update Status field options (columns)
         update_field_query = """
-        mutation($projectId: ID!, $fieldId: ID!, $options: [ProjectV2SingleSelectFieldOptionInput!]!) {
+        mutation($fieldId: ID!, $options: [ProjectV2SingleSelectFieldOptionInput!]!) {
           updateProjectV2Field(input: {
-            projectId: $projectId
             fieldId: $fieldId
             singleSelectOptions: $options
           }) {
@@ -191,12 +190,11 @@ def create_project(api: GitHubAPI, repo_name: str) -> dict:
         }
         """
 
-        options = [{'name': col, 'color': 'GRAY'} for col in columns]
+        options = [{'name': col, 'color': 'GRAY', 'description': ''} for col in columns]
 
         api._make_graphql_request(
             update_field_query,
             {
-                'projectId': project['id'],
                 'fieldId': status_field['id'],
                 'options': options,
             },
