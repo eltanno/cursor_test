@@ -1,6 +1,11 @@
 #!/bin/bash
 # Unified setup script - handles both greenfield and modernization projects
 # Auto-detects project type and runs appropriate setup
+#
+# Usage:
+#   ./setup.sh                           # Manual .env setup
+#   ./setup.sh -t TOKEN                  # Auto-create .env with token
+#   ./setup.sh --github-token TOKEN      # Auto-create .env with token
 
 set -e  # Exit on error
 
@@ -13,6 +18,35 @@ NC='\033[0m' # No Color
 
 # Script directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Parse command line arguments
+GITHUB_TOKEN=""
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        -t|--github-token)
+            GITHUB_TOKEN="$2"
+            shift 2
+            ;;
+        -h|--help)
+            echo "Usage: $0 [OPTIONS]"
+            echo ""
+            echo "Options:"
+            echo "  -t, --github-token TOKEN    Automatically create .env with GitHub token"
+            echo "  -h, --help                  Show this help message"
+            echo ""
+            echo "Examples:"
+            echo "  $0                                      # Manual .env setup"
+            echo "  $0 -t ghp_your_token_here              # Auto-create .env"
+            echo "  $0 --github-token ghp_your_token_here  # Auto-create .env"
+            exit 0
+            ;;
+        *)
+            echo "Unknown option: $1"
+            echo "Use -h or --help for usage information"
+            exit 1
+            ;;
+    esac
+done
 
 # Function to print colored output
 print_step() {
@@ -731,6 +765,31 @@ JSONEOF
 fi
 
 echo ""
+
+# Handle .env creation if token provided
+if [ -n "$GITHUB_TOKEN" ]; then
+    print_step "Creating .env file with provided token..."
+    
+    if [ -f ".env" ]; then
+        print_warning ".env file already exists"
+        read -p "Overwrite with new token? (y/N): " -n 1 -r
+        echo
+        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+            print_skip "Keeping existing .env file"
+        else
+            cp .env.example .env
+            echo "GITHUB_API_KEY=$GITHUB_TOKEN" >> .env
+            print_success "Created .env with GitHub token"
+        fi
+    else
+        cp .env.example .env
+        echo "GITHUB_API_KEY=$GITHUB_TOKEN" >> .env
+        print_success "Created .env with GitHub token"
+    fi
+    echo ""
+fi
+
+echo ""
 echo -e "${GREEN}✅ Setup complete!${NC}"
 echo ""
 echo "📝 Next steps:"
@@ -740,38 +799,61 @@ if [ "$PROJECT_TYPE" = "modernization" ]; then
     echo "  1. Review changes:"
     echo "     git diff"
     echo ""
-    echo "  2. Update .env with GitHub API key:"
-    echo "     cp .env.example .env && nano .env"
-    echo ""
-    echo "  3. Commit template import:"
+    
+    if [ -z "$GITHUB_TOKEN" ]; then
+        echo "  2. Update .env with GitHub API key:"
+        echo "     cp .env.example .env && nano .env"
+        echo ""
+        NEXT_STEP=3
+    else
+        echo "  2. ✓ .env already configured with GitHub token"
+        echo ""
+        NEXT_STEP=2
+    fi
+    
+    echo "  $NEXT_STEP. Commit template import:"
     echo "     git add . && git commit -m 'chore: import modernization template'"
     echo ""
-    echo "  4. Create GitHub repository:"
+    ((NEXT_STEP++))
+    echo "  $NEXT_STEP. Create GitHub repository:"
     echo "     source .venv/bin/activate"
     echo "     python scripts/github/create_repo_and_project.py --name \"$PROJECT_NAME\" --private --init-git"
     echo "     git push -u origin $CURRENT_BRANCH"
     echo ""
-    echo "  5. Run codebase assessment:"
+    ((NEXT_STEP++))
+    echo "  $NEXT_STEP. Run codebase assessment:"
     echo "     python scripts/modernize/assess_codebase.py"
     echo "     cat docs/modernization/assessment.md"
     echo ""
-    echo "  6. For switching Cursor sessions:"
+    ((NEXT_STEP++))
+    echo "  $NEXT_STEP. For switching Cursor sessions:"
     echo "     Read tmp/cursor-handoff-modernization.md"
 else
     echo "  1. Activate virtual environment:"
     echo "     source .venv/bin/activate"
     echo ""
-    echo "  2. Configure environment:"
-    echo "     cp .env.example .env && nano .env"
-    echo ""
-    echo "  3. Create GitHub repository:"
+    
+    if [ -z "$GITHUB_TOKEN" ]; then
+        echo "  2. Configure environment:"
+        echo "     cp .env.example .env && nano .env"
+        echo ""
+        NEXT_STEP=3
+    else
+        echo "  2. ✓ .env already configured with GitHub token"
+        echo ""
+        NEXT_STEP=2
+    fi
+    
+    echo "  $NEXT_STEP. Create GitHub repository:"
     echo "     python scripts/github/create_repo_and_project.py --name \"$PROJECT_NAME\" --private --init-git"
     echo ""
-    echo "  4. Make initial commit:"
+    ((NEXT_STEP++))
+    echo "  $NEXT_STEP. Make initial commit:"
     echo "     git add . && git commit -m 'chore: initial setup'"
     echo "     git push -u origin $CURRENT_BRANCH"
     echo ""
-    echo "  5. For switching Cursor sessions:"
+    ((NEXT_STEP++))
+    echo "  $NEXT_STEP. For switching Cursor sessions:"
     echo "     Read tmp/cursor-handoff-greenfield.md"
 fi
 
