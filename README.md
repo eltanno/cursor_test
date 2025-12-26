@@ -75,7 +75,7 @@ This script will:
 python3 -m venv venv
 
 # Activate virtual environment
-source venv/bin/activate  # On Linux/Mac
+source .venv/bin/activate  # On Linux/Mac
 # OR
 venv\Scripts\activate     # On Windows
 
@@ -110,7 +110,7 @@ GITHUB_PROJECT_NUMBER=1
 5. **Activate virtual environment (if not already active)**
 
 ```bash
-source venv/bin/activate  # On Linux/Mac
+source .venv/bin/activate  # On Linux/Mac
 # OR
 venv\Scripts\activate     # On Windows
 ```

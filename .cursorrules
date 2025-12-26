@@ -624,12 +624,12 @@ class UserValidationError extends Error {
 → ALWAYS document test results in tickets
 
 ### Python Virtual Environment Guardrails
-→ ALWAYS activate venv before running Python commands
-→ Check if venv exists at project root
-→ For terminal commands, activate with: `source venv/bin/activate && <command>`
-→ For Python scripts: `source venv/bin/activate && python script.py`
-→ For pip installs: `source venv/bin/activate && pip install <package>`
-→ Never run Python commands without venv activation
+→ ALWAYS activate .venv before running Python commands
+→ Check if .venv exists at project root
+→ For terminal commands, activate with: `source .venv/bin/activate && <command>`
+→ For Python scripts: `source .venv/bin/activate && python script.py`
+→ For pip installs: `source .venv/bin/activate && pip install <package>`
+→ Never run Python commands without .venv activation
 
 ---
 
@@ -646,10 +646,10 @@ class UserValidationError extends Error {
 - **Environment**: Virtual environment (venv) - ALWAYS activate before commands
 
 ### Python Virtual Environment
-- **Location**: `venv/` at project root
-- **Activation**: `source venv/bin/activate` (Linux/Mac) or `venv\Scripts\activate` (Windows)
+- **Location**: `.venv/` at project root
+- **Activation**: `source .venv/bin/activate` (Linux/Mac) or `.venv\Scripts\activate` (Windows)
 - **Requirement**: MUST be activated for all Python operations
-- **Terminal Commands**: Prefix with venv activation: `source venv/bin/activate && python script.py`
+- **Terminal Commands**: Prefix with venv activation: `source .venv/bin/activate && python script.py`
 
 ### JavaScript/TypeScript Projects
 - **Linter**: ESLint (configured via .eslintrc.js)

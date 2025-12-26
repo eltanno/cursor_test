@@ -79,27 +79,27 @@ if ! $PYTHON_CMD -m venv --help &> /dev/null; then
 fi
 
 # Create virtual environment
-if [ -d "venv" ]; then
+if [ -d ".venv" ]; then
     echo "⚠️  Virtual environment already exists"
     read -p "Do you want to recreate it? (y/N): " -n 1 -r
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
         echo "🗑️  Removing old virtual environment..."
-        rm -rf venv
+        rm -rf .venv
     else
         echo "Using existing virtual environment"
     fi
 fi
 
-if [ ! -d "venv" ]; then
+if [ ! -d ".venv" ]; then
     echo "📦 Creating virtual environment..."
-    $PYTHON_CMD -m venv venv
+    $PYTHON_CMD -m venv .venv
     echo "✓ Virtual environment created"
 fi
 
 # Activate virtual environment
 echo "🔌 Activating virtual environment..."
-source venv/bin/activate
+source .venv/bin/activate
 
 # Upgrade pip
 echo "⬆️  Upgrading pip..."
@@ -166,7 +166,7 @@ echo "✅ Setup complete!"
 echo ""
 echo "📝 Next steps:"
 echo "  1. Activate the virtual environment:"
-echo "     source venv/bin/activate"
+echo "     source .venv/bin/activate"
 echo ""
 echo "  2. If using Node.js/TypeScript, activate Node 20:"
 echo "     source ~/.nvm/nvm.sh && nvm use 20"

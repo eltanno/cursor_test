@@ -5,7 +5,7 @@
 Always activate before working:
 ```bash
 cd /home/jim/projects/cursor-test
-source venv/bin/activate
+source .venv/bin/activate
 ```
 
 Your prompt will show `(venv)` when active.
@@ -21,29 +21,29 @@ deactivate
 
 ### Correct Pattern:
 ```bash
-cd /home/jim/projects/cursor-test && source venv/bin/activate && python script.py
+cd /home/jim/projects/cursor-test && source .venv/bin/activate && python script.py
 ```
 
 ### Examples:
 
 **Run Python script:**
 ```bash
-source venv/bin/activate && python scripts/github/create_tickets.py plan.md
+source .venv/bin/activate && python scripts/github/create_tickets.py plan.md
 ```
 
 **Run tests:**
 ```bash
-source venv/bin/activate && pytest
+source .venv/bin/activate && pytest
 ```
 
 **Install package:**
 ```bash
-source venv/bin/activate && pip install package-name
+source .venv/bin/activate && pip install package-name
 ```
 
 **Run Python one-liner:**
 ```bash
-source venv/bin/activate && python -c "import sys; print(sys.version)"
+source .venv/bin/activate && python -c "import sys; print(sys.version)"
 ```
 
 ### Never Do:
@@ -51,18 +51,17 @@ source venv/bin/activate && python -c "import sys; print(sys.version)"
 ❌ `pip install package`  # Wrong - venv not activated
 
 ### Always Do:
-✅ `source venv/bin/activate && python script.py`
-✅ `source venv/bin/activate && pip install package`
+✅ `source .venv/bin/activate && python script.py`
+✅ `source .venv/bin/activate && pip install package`
 
 ## Verification
 
 Test that venv is activated properly:
 ```bash
-source venv/bin/activate && which python
+source .venv/bin/activate && which python
 # Should show: /home/jim/projects/cursor-test/venv/bin/python
 ```
 
 ---
 
 **This ensures all Python dependencies are isolated and consistent!**
-

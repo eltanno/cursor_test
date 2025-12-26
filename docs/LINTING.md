@@ -156,7 +156,7 @@ git commit --no-verify -m "message"
 
 **Command:**
 ```bash
-source venv/bin/activate
+source .venv/bin/activate
 python scripts/quality/pre_pr_check.py
 ```
 
@@ -205,7 +205,7 @@ python scripts/quality/pre_pr_check.py
 **Solution:**
 ```bash
 # Run cleanup pass
-source venv/bin/activate
+source .venv/bin/activate
 ruff check . --fix --unsafe-fixes
 ruff format .
 
@@ -291,7 +291,7 @@ All code must:
 ### Check All Code
 ```bash
 # Python
-source venv/bin/activate
+source .venv/bin/activate
 ruff check .
 
 # JavaScript/TypeScript
@@ -317,7 +317,7 @@ npx stylelint "**/*.{css,scss}" --fix
 
 ### Run All Hooks Manually
 ```bash
-source venv/bin/activate
+source .venv/bin/activate
 pre-commit run --all-files
 ```
 

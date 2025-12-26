@@ -36,7 +36,7 @@ Add your GitHub Personal Access Token to the `.env` file.
 ### 4. Verify Setup
 
 ```bash
-source venv/bin/activate
+source .venv/bin/activate
 python -c "from scripts.utils.github_api import GitHubAPI; api = GitHubAPI(); print('✓ Setup successful!')"
 ```
 
@@ -51,7 +51,7 @@ If you prefer to set up manually:
 python3 -m venv venv
 
 # 2. Activate virtual environment
-source venv/bin/activate
+source .venv/bin/activate
 
 # 3. Upgrade pip
 pip install --upgrade pip
@@ -75,7 +75,7 @@ Before working on the project each day:
 
 ```bash
 cd /home/jim/projects/cursor-test
-source venv/bin/activate
+source .venv/bin/activate
 ```
 
 Your terminal prompt will show `(venv)` when the virtual environment is active.
@@ -105,7 +105,7 @@ cp .env.example .env
 ### "Module not found" errors
 **Solution**: Make sure virtual environment is activated and dependencies installed:
 ```bash
-source venv/bin/activate
+source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
@@ -115,4 +115,3 @@ pip install -r requirements.txt
 chmod +x setup.sh
 chmod +x scripts/github/*.py
 ```
-
