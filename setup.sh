@@ -162,6 +162,102 @@ if [ -f "package.json" ]; then
 fi
 
 echo ""
+echo "📄 Generating Cursor handoff document..."
+
+# Generate greenfield handoff
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_NAME=$(basename "$PWD")
+CURRENT_DATE=$(date +%Y-%m-%d)
+CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null | tr -d '\n' || echo "main")
+
+# Check if .env exists
+ENV_STATUS="needs configuration"
+if [ -f ".env" ]; then
+    ENV_STATUS="configured"
+fi
+
+# Check if GitHub repo/project created
+GITHUB_STATUS="⏳"
+GITHUB_DETAILS="- **Status:** Not yet created\n- **Action:** Run \`python scripts/github/create_repo_and_project.py\`"
+GIT_REMOTE="Not yet configured"
+KANBAN_URL="<will be set after repo creation>"
+
+if git remote get-url origin &> /dev/null; then
+    GIT_REMOTE=$(git remote get-url origin)
+    GITHUB_STATUS="✅"
+    GITHUB_DETAILS="- **Repository:** $GIT_REMOTE\n- **Status:** Created\n- **Project:** Check GitHub for Kanban board"
+    # Extract owner/repo from URL
+    if [[ $GIT_REMOTE =~ github\.com[:/]([^/]+)/([^/.]+) ]]; then
+        GITHUB_OWNER="${BASH_REMATCH[1]}"
+        GITHUB_REPO="${BASH_REMATCH[2]}"
+        KANBAN_URL="https://github.com/users/$GITHUB_OWNER/projects/"
+    fi
+fi
+
+# Determine project phase
+PROJECT_PHASE="Initial Setup Complete"
+NEXT_PHASE="Planning & Feature Development"
+CURRENT_STATUS="✅ Scaffolding ready, awaiting first feature planning"
+
+# Build JSON for handoff
+mkdir -p tmp
+cat > /tmp/greenfield_handoff_vars.json << JSONEOF
+{
+  "PROJECT_NAME": "$PROJECT_NAME",
+  "PROJECT_DIR": "$PROJECT_NAME",
+  "CURRENT_DATE": "$CURRENT_DATE",
+  "PROJECT_PHASE": "$PROJECT_PHASE",
+  "CURRENT_STATUS": "$CURRENT_STATUS",
+  "PROJECT_DESCRIPTION": "<to be defined>",
+  "PROJECT_PURPOSE": "<to be defined>",
+  "TECH_STACK": "- **Languages:** Python, JavaScript/TypeScript (if applicable)\\n- **Framework:** <to be chosen>\\n- **Database:** <to be chosen>",
+  "ARCHITECTURE": "**Architecture:** <to be defined - see FEAT-002 for multi-tier guidance>",
+  "TOOLING_SETUP": "- ✅ Python virtual environment (.venv)\\n- ✅ Pre-commit hooks (Ruff, ESLint, Stylelint)\\n- ✅ Linters configured\\n- ✅ Git repository initialized",
+  "GITHUB_STATUS": "$GITHUB_STATUS",
+  "GITHUB_DETAILS": "$GITHUB_DETAILS",
+  "DIRECTORY_STRUCTURE": "├── src/              # Application code (to be created)\\n├── tests/            # Test files (to be created)\\n├── scripts/          # Infrastructure scripts\\n├── docs/             # Documentation\\n├── tmp/              # Temporary files\\n├── .cursorrules      # Development workflow rules\\n└── .venv/            # Python virtual environment",
+  "CURRENT_BRANCH": "$CURRENT_BRANCH",
+  "GIT_REMOTE": "$GIT_REMOTE",
+  "COMMIT_COUNT": "$(git rev-list --count HEAD 2>/dev/null || echo '0')",
+  "ENV_STATUS": "$ENV_STATUS",
+  "REQUIRED_ENV_VARS": "   - \`GITHUB_API_KEY\` - Your GitHub Personal Access Token\\n   - \`GITHUB_OWNER\` - Your GitHub username\\n   - \`GITHUB_REPO\` - Repository name\\n   - \`GITHUB_PROJECT_NUMBER\` - Project number (auto-filled)",
+  "STEP_1_STATUS": "✅",
+  "STEP_2_STATUS": "🔜",
+  "STEP_3_STATUS": "⏳",
+  "STEP_4_STATUS": "⏳",
+  "STEP_5_STATUS": "⏳",
+  "SUGGESTED_REPO_NAME": "$PROJECT_NAME",
+  "DEFAULT_BRANCH": "$CURRENT_BRANCH",
+  "TEST_COMMAND": "pytest tests/",
+  "COVERAGE_COMMAND": "pytest --cov=src tests/",
+  "PYTHON_PACKAGES": "- pytest, pytest-cov\\n- ruff (linter/formatter)\\n- pre-commit\\n- vulture (dead code detection)\\n- bandit (security)",
+  "LINTER_CONFIGS": "- **Python:** \`ruff.toml\` (88 char lines, single quotes, 40+ rule sets)\\n- **JavaScript/TypeScript:** \`.eslintrc.js\` (Airbnb style, 100 char lines)\\n- **CSS/SCSS:** \`.stylelintrc.json\` (standard config, no IDs, max 4 nesting)",
+  "USER_STACK_PREFERENCES": "- **Backend:** Django (default)\\n- **Frontend:** React (default)\\n- **Database:** PostgreSQL (default)\\n- **Architecture:** Monorepo (multi-tier in one repo)\\n- **Containerization:** Docker Compose\\n- **Testing:** Unit tests (always) + E2E tests (feature-dependent)",
+  "SCAFFOLD_PATH": "$SCRIPT_DIR",
+  "SCAFFOLD_GITHUB_URL": "Not yet pushed (local only)",
+  "USER_INFO": "- **GitHub Username:** (check .env for GITHUB_OWNER)\\n- **GitHub Token:** Stored in .env as GITHUB_API_KEY\\n- **Token Scopes:** repo, project, admin:org",
+  "GITHUB_URLS": "- **Your Projects:** https://github.com/users/<GITHUB_OWNER>/projects/\\n- **This Project:** $GIT_REMOTE",
+  "KANBAN_URL": "$KANBAN_URL",
+  "NEXT_PHASE": "$NEXT_PHASE"
+}
+JSONEOF
+
+# Generate handoff if template exists
+if [ -f "$SCRIPT_DIR/docs/templates/handoff-greenfield-template.md" ]; then
+    python3 "$SCRIPT_DIR/scripts/utils/generate_greenfield_handoff.py" \
+        "$SCRIPT_DIR/docs/templates/handoff-greenfield-template.md" \
+        "/tmp/greenfield_handoff_vars.json" > /dev/null 2>&1
+
+    rm /tmp/greenfield_handoff_vars.json
+
+    if [ -f "tmp/cursor-handoff-greenfield.md" ]; then
+        echo "✓ Greenfield handoff generated: tmp/cursor-handoff-greenfield.md"
+    fi
+else
+    echo "⚠️  Handoff template not found, skipping"
+fi
+
+echo ""
 echo "✅ Setup complete!"
 echo ""
 echo "📝 Next steps:"
@@ -180,6 +276,9 @@ echo "     python -c \"from scripts.utils.github_api import GitHubAPI; api = Git
 echo ""
 echo "  5. Read the linting guide:"
 echo "     cat docs/LINTING.md"
+echo ""
+echo "  6. For switching Cursor sessions:"
+echo "     cat tmp/cursor-handoff-greenfield.md"
 echo ""
 echo "🎉 Happy coding!"
 echo ""
