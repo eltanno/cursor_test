@@ -405,8 +405,14 @@ def main():
     print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
 
     try:
-        # Initialize API
-        api = GitHubAPI()
+        # Initialize API (without requiring repo config, since we're creating it)
+        api = GitHubAPI(require_repo_config=False)
+
+        # Get owner from environment or GitHub API
+        if not api.owner:
+            # Fetch authenticated user info to get owner
+            user_response = api._make_request('GET', '/user')
+            api.owner = user_response['login']
 
         # Create repository
         repo = create_repository(
