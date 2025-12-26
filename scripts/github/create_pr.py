@@ -32,6 +32,40 @@ def get_current_branch() -> str:
     return result.stdout.strip()
 
 
+def check_git_status() -> tuple[bool, list[str], list[str]]:
+    """Check git status for uncommitted or untracked files.
+
+    Returns:
+        Tuple of (is_clean, uncommitted_files, untracked_files)
+    """
+    # Check for uncommitted changes
+    result = subprocess.run(
+        ['git', 'status', '--porcelain'],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+
+    uncommitted = []
+    untracked = []
+
+    for line in result.stdout.strip().split('\n'):
+        if not line:
+            continue
+
+        status = line[:2]
+        filepath = line[3:]
+
+        if status == '??':
+            untracked.append(filepath)
+        elif status.strip():  # Any other status (M, A, D, etc.)
+            uncommitted.append(filepath)
+
+    is_clean = not uncommitted and not untracked
+
+    return is_clean, uncommitted, untracked
+
+
 def create_pull_request(
     title: str,
     body: str,
@@ -55,7 +89,43 @@ def create_pull_request(
     if head == base:
         raise ValueError(f"Cannot create PR: currently on base branch '{base}'")
 
-    print('\n📝 Creating Pull Request')
+    # Check git status BEFORE creating PR
+    print('\n🔍 Checking git status...')
+    is_clean, uncommitted, untracked = check_git_status()
+
+    if not is_clean:
+        print('\n⚠️  Warning: Uncommitted or untracked files detected!')
+        print()
+
+        if uncommitted:
+            print('📝 Uncommitted changes:')
+            for file in uncommitted:
+                print(f'   - {file}')
+            print()
+
+        if untracked:
+            print('❓ Untracked files:')
+            for file in untracked:
+                print(f'   - {file}')
+            print()
+
+        print('These files are NOT included in the current commit.')
+        print()
+
+        # Ask user if they want to continue
+        response = input('Continue creating PR anyway? (y/N): ').strip().lower()
+        if response not in ['y', 'yes']:
+            print('\n❌ PR creation cancelled.')
+            print()
+            print('💡 Tip: Review and commit/add files, then try again:')
+            print('   git status')
+            print('   git add <files>')
+            print('   git commit -m "message"')
+            sys.exit(0)
+
+        print()
+
+    print('📝 Creating Pull Request')
     print(f'   From: {head}')
     print(f'   To: {base}')
     print(f'   Title: {title}')

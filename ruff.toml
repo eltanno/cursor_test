@@ -101,11 +101,18 @@ fixable = [
 "scripts/**/*.py" = [
     "T201",   # print() is fine in scripts
     "S603",   # subprocess without shell=True is fine for scripts
+    "S607",   # Starting process with partial path (git) is fine
     "BLE001", # blind except acceptable in utility scripts
     "PLR0912", # many branches OK for main functions
     "PLR0915", # many statements OK for main functions
+    "PLR2004", # magic values OK in scripts
     "D212",   # multi-line docstring format
     "D415",   # docstring punctuation
+    "TRY003", # long exception messages OK
+    "EM102",  # f-strings in exceptions OK
+    "SLF001", # private member access OK (for _make_request)
+    "ANN201", # return type annotations not required
+    "PLC0415", # import in function OK (traceback for errors)
 ]
 
 # Modernization scripts have additional relaxed rules (analyzing legacy code)
